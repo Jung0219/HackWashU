@@ -9,7 +9,9 @@ import io
 app = FastAPI(title="Local YOLO Classification API")
 
 # 2. Load YOLO classification model (trained weights)
-model = YOLO("yolo11n-cls.pt")  # your YOLOv8n-cls or custom model
+# your YOLOv8n-cls or custom model
+model = YOLO(
+    "/mnt/c/Users/Finn/Downloads/Personal/python/hackathon/output/train/weights/best.pt")
 
 # 3. Define endpoint for prediction
 
