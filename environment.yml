@@ -1,0 +1,33 @@
+name: cv
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - numpy
+  - pandas
+  - scipy
+  - matplotlib
+  - tqdm
+  - pillow
+  - scikit-image
+  - opencv
+  - albumentations
+  - imgaug
+  - pytorch
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=11.8  # remove this line if CPU-only
+  - jupyterlab
+  - seaborn
+  - pip:
+      - ultralytics==8.3.0   # YOLOv8
+      - timm
+      - transformers
+      - fiftyone
+      - pycocotools
+      - wandb
+      - kaggle
