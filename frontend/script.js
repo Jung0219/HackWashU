@@ -36,20 +36,30 @@ function handleFile(event) {
   // Ensure results are hidden first
   results.classList.remove("show");
 
-  setTimeout(() => {
-    loading.style.display = "none";
+  const formData = new FormData();
+  formData.append("file", file);
 
-    // Fill results
-    injuryEl.textContent = "Knee Scrape";
-    proceduresEl.textContent = "Bandaid";
-    pricingEl.textContent = "$2";
+  fetch("http://127.0.0.1:8000/predict", {  // your FastAPI URL
+    method: "POST",
+    body: formData,
+  })
+    .then(res => res.json())
+    .then(data => {
+      loading.style.display = "none";
 
-    // Animate results
-    results.classList.add("show");
-  }, 2000);
+      // Fill results with backend response
+      injuryEl.textContent = data.predicted_class;
+      proceduresEl.textContent = "Apply proper first aid"; // optional static field
+      pricingEl.textContent = `$${(Math.random() * 30 + 5).toFixed(2)}`; // mock price
+
+      results.classList.add("show");
+    })
+    .catch(err => {
+      loading.style.display = "none";
+      alert("Error connecting to backend: " + err.message);
+    });
+
 }
-
-
 
 uploadInput.addEventListener('change', handleFile);
 cameraInput.addEventListener('change', handleFile);

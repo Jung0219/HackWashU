@@ -4,9 +4,19 @@ from fastapi.responses import JSONResponse
 from ultralytics import YOLO
 from PIL import Image
 import io
+from fastapi.middleware.cors import CORSMiddleware
 
 # 1. Initialize FastAPI app
 app = FastAPI(title="Local YOLO Classification API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # 2. Load YOLO classification model (trained weights)
 # your YOLOv8n-cls or custom model
