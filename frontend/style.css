@@ -7,17 +7,17 @@ body {
 
 .home-page {
   display: flex;
-  justify-content: center;  /* horizontal center */
-  align-items: center;      /* vertical center */
-  height: 100vh;            /* full viewport height */
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
 .box-1 {
   background-color: #bae6fd;
   border-radius: 12px;
   padding: 20px;
-  width: 80%;               /* responsive width */
-  max-width: 400px;         /* typical phone width */
+  width: 80%;
+  max-width: 400px;
   text-align: center;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
@@ -29,45 +29,12 @@ body {
   border-radius: 10px;
   border: 2px solid #ffffff;
   margin-top: 15px;
-  display: none; /* hidden initially */
+  display: none;
 }
 
-#results {
-  display: none;          /* hide initially */
-  opacity: 0;
-  transform: scale(0.8);
-  transition: opacity 1.5s ease, transform 1.5s ease;
-  margin-top: 20px;
-}
-
-#results.show {
-  display: block;         /* show */
-  opacity: 1;
-  transform: scale(1);
-}
 .result-item {
   margin-bottom: 10px;
 }
-
-
-.box-2 {
-  display: none;
-  background-color: #bae6fd;
-  border-radius: 12px;
-  padding: 20px;
-  width: 90%;               /* make boxes responsive */
-  max-width: 400px;         /* typical iPhone width cap */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  color: #6363638a;
-}
-
-.box-2.show {
-  display: block;
-  opacity: 1;
-}
-
 
 button {
   padding: 10px 20px;
@@ -82,9 +49,8 @@ button:hover {
   background-color: #4e90e0;
 }
 
-/* Simple modal overlay */
 .modal {
-  display: none; /* Hidden by default */
+  display: none;
   position: fixed;
   z-index: 1000;
   left: 0;
@@ -96,7 +62,6 @@ button:hover {
   align-items: center;
 }
 
-/* Modal content box */
 .modal-content {
   background: white;
   padding: 20px;
@@ -107,7 +72,6 @@ button:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-/* Button layout inside modal */
 .modal-buttons {
   display: flex;
   flex-direction: column;
@@ -131,7 +95,7 @@ button:hover {
   background-color: #60a5fa;
   color: white;
 }
-/* take photo and upload photo hover*/
+
 #takePhotoBtn:hover {
   background-color: #4e90e0;
 }
@@ -144,11 +108,45 @@ button:hover {
   margin-top: 15px;
 }
 #preview {
-  display: none; /* hide by default */
+  display: none;
   width: 250px;
   height: 250px;
   object-fit: cover;
   border-radius: 10px;
-  margin: 15px auto 0 auto; /* top margin + auto left/right */
-  border: 2px solid #2563eb;
+  border: 2px solid #4e90e0;
+  margin: 0 auto;
+}
+
+.treatment-plan {
+  background-color: #a0cde6;
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 20px;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.8s ease, max-height 0.8s ease;
+}
+
+.treatment-plan.show {
+  opacity: 1;
+  max-height: 500px;
+}
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.result-item h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #8B8D8B
+}
+
+.result-item p {
+  margin: 0;
+  font-size: 16px;
+  color: #8B8D8B
 }
