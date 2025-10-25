@@ -8,19 +8,20 @@
 </head>
 <body class="home-page">
   <div class = "box-1">
+
+    <!-- initial title and button to upload photo -->
     <h1 style="color: #8B8D8B">Injury Detection</h1>
     <button id="submitInjury">Upload Photo</button>
 
-    <!-- Hidden file inputs -->
+    <!-- hidden file inputs -->
     <input type="file" id="uploadInput" accept="image/*" style="display:none" />
     <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" />
 
-    <!-- Modal -->
+    <!-- choose between taking and uploading a photo to be analyzed -->
     <div id="photoModal" class="modal">
       <div class="modal-content">
         <h3 style="color: #8B8D8B">Choose an option</h3>
         <div class="modal-buttons">
-          <!-- <button id="takePhotoBtn">📸 Take Photo</button> -->
           <button id="takePhotoBtn">
             <img src="cam.png" alt="Camera Icon" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;" />
             Take Photo
@@ -34,36 +35,29 @@
       </div>
     </div>
 
-    <!-- Image preview -->
+    <!-- image preview -->
     <img id="preview" class="camera" alt="Preview" />
-    <p id="output"></p>
 
-    <p id="loading" style="display:none">
-      Analyzing...
-    </p>
+    <!-- loading text -->
+    <p id="loading" style="display:none; color: #8B8D8B;">Analyzing...</p>
 
-    <!-- Results -->
-    <div id="results">
-      <div class="result-item"><h4>Injury</h4><p id="injury">-</p></div>
-      <div class="result-item"><h4>Procedures</h4><p id="procedures">-</p></div>
-      <div class="result-item"><h4>Pricing</h4><p id="pricing">-</p></div>
+    <!-- treatment plan with info about the injury, recommended procedures, and pricing -->
+    <div id="treatmentPlan" class="treatment-plan">
+      <h3 style="color: #8B8D8B; margin-top: 0%;">Treatment Plan</h3>
+      <div class="result-item">
+        <h4>Injury</h4>
+        <p id="injury">-</p>
+      </div>
+      <div class="result-item">
+        <h4>Procedures</h4>
+        <p id="procedures">-</p>
+      </div>
+      <div class="result-item">
+        <h4>Pricing</h4>
+        <p id="pricing">-</p>
+      </div>
     </div>
 
-  </div>
-  <div class = "box-2">
-    <h1>Results</h1>
-    <div class = "results">
-      <h4>Injury</h4>
-      <p>Knee Scrape</p>
-    </div>
-    <div class="results">
-      <h4>Procedures</h4>
-      <p>Bandaid</p>
-    </div>
-    <div class="results">
-      <h4>Pricing</h4>
-      <p>$2</p>
-    </div>
   </div>
 
   <script src="script.js"></script>
