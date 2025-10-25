@@ -67,3 +67,4 @@ outputs/
 build/
 dist/
 *.egg-info/
+*.csv

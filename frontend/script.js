@@ -39,7 +39,9 @@ function handleFile(event) {
   const formData = new FormData();
   formData.append("file", file);
 
-  fetch("http://127.0.0.1:8000/predict", {  // your FastAPI URL
+  let lastPrediction = null;
+
+  fetch("http://127.0.0.1:8000/predict", {
     method: "POST",
     body: formData,
   })
@@ -47,18 +49,15 @@ function handleFile(event) {
     .then(data => {
       loading.style.display = "none";
 
-      // Fill results with backend response
-      injuryEl.textContent = data.predicted_class;
-      proceduresEl.textContent = "Apply proper first aid"; // optional static field
-      pricingEl.textContent = `$${(Math.random() * 30 + 5).toFixed(2)}`; // mock price
+      // Save the predicted class
+      lastPrediction = data.predicted_class;
 
+      // Update UI
+      injuryEl.textContent = lastPrediction;
+      proceduresEl.textContent = "Apply proper first aid";
+      pricingEl.textContent = `$${(Math.random() * 30 + 5).toFixed(2)}`;
       results.classList.add("show");
-    })
-    .catch(err => {
-      loading.style.display = "none";
-      alert("Error connecting to backend: " + err.message);
     });
-
 }
 
 uploadInput.addEventListener('change', handleFile);
