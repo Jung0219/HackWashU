@@ -1,0 +1,13 @@
+name: wound_care_advisor_env
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+      - google-generativeai
+      - pydantic
+      - python-dotenv
+      - unittest
