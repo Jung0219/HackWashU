@@ -1,0 +1,34 @@
+# app.py
+from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import JSONResponse
+from ultralytics import YOLO
+from PIL import Image
+import io
+
+# 1. Initialize FastAPI app
+app = FastAPI(title="Local YOLO Classification API")
+
+# 2. Load YOLO classification model (trained weights)
+model = YOLO("yolo11n-cls.pt")  # your YOLOv8n-cls or custom model
+
+# 3. Define endpoint for prediction
+
+
+@app.post("/predict")
+async def predict(file: UploadFile = File(...)):
+    # Read image bytes and open as PIL Image
+    image_bytes = await file.read()
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+    # 4. Run YOLO classification inference
+    results = model.predict(image)
+
+    # 5. Extract top prediction
+    top_pred = results[0].probs.top1
+    confidence = float(results[0].probs.top1conf)
+    class_name = model.names[top_pred]
+
+    return JSONResponse({
+        "predicted_class": class_name,
+        "confidence": round(confidence, 3)
+    })
