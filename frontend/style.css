@@ -229,6 +229,68 @@ button:hover {
   border: 2px solid #7dd3fc;
 }
 
+/* Map Container - SVG-based Map */
+.map-container {
+  width: 100%;
+  height: 400px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border: 2px solid #7dd3fc;
+  background: white;
+}
+
+.map-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Hospital markers - SVG styling */
+.hospital-marker {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.hospital-marker:hover circle:nth-child(2) {
+  filter: brightness(1.3);
+}
+
+.hospital-marker:hover circle:nth-child(3) {
+  r: 35px;
+}
+
+.hospital-marker:hover .hospital-tooltip {
+  opacity: 1 !important;
+  transition: opacity 0.3s ease;
+}
+
+.marker-1,
+.marker-2 {
+  animation: markerPulse 2s infinite;
+}
+
+@keyframes markerPulse {
+  0%, 100% {
+    filter: drop-shadow(0 4px 15px rgba(6, 182, 212, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 4px 25px rgba(6, 182, 212, 0.9));
+  }
+}
+
+.hospital-marker:hover {
+  animation: none;
+  transform: scale(1.15);
+}
+
+/* Hospital tooltip styling */
+.hospital-tooltip {
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
 .map-background {
   width: 100%;
   height: 100%;

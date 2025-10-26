@@ -85,31 +85,71 @@
       
       <!-- Custom Map Container (No API Key Needed) -->
       <div id="mapContainer" class="map-container">
-        <div class="map-background">
-          <h3 style="color: #8B8D8B; text-align: center; margin-top: 20px;">Hospital Locations</h3>
-          <div class="hospital-markers">
-            <!-- Hospital 1 Marker -->
-            <div class="marker marker-1" data-hospital="barnes_jewish">
-              <div class="marker-label">1</div>
-              <div class="marker-popup">
-                <strong>Barnes Jewish St. Peters</strong><br>
-                St. Peters, MO 63376
-              </div>
-            </div>
+        <svg class="map-svg" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid slice">
+          <!-- Background -->
+          <defs>
+            <linearGradient id="mapGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#e0f2fe;stop-opacity:1" />
+              <stop offset="25%" style="stop-color:#bae6fd;stop-opacity:1" />
+              <stop offset="50%" style="stop-color:#7dd3fc;stop-opacity:1" />
+              <stop offset="75%" style="stop-color:#38bdf8;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+            </linearGradient>
+            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+            </filter>
+          </defs>
+          
+          <!-- Water background -->
+          <rect width="1000" height="400" fill="url(#mapGradient)"/>
+          
+          <!-- Roads/highways -->
+          <path d="M 200 350 Q 350 300 500 250 T 800 150" stroke="#fbbf24" stroke-width="12" fill="none" opacity="0.6"/>
+          <path d="M 150 200 L 850 200" stroke="#f59e0b" stroke-width="8" fill="none" opacity="0.5"/>
+          
+          <!-- City markers (background) -->
+          <circle cx="250" cy="320" r="8" fill="#fed7aa" opacity="0.4"/>
+          <circle cx="750" cy="150" r="8" fill="#fed7aa" opacity="0.4"/>
+          
+          <!-- Distance indicator line -->
+          <line x1="300" y1="180" x2="700" y2="280" stroke="#06b6d4" stroke-width="2" stroke-dasharray="5,5" opacity="0.4"/>
+          
+          <!-- Hospital 1: Barnes Jewish -->
+          <g class="hospital-marker marker-1">
+            <circle cx="300" cy="180" r="60" fill="url(#mapGradient)" opacity="0.1"/>
+            <circle cx="300" cy="180" r="35" fill="#0ea5e9" filter="url(#shadow)"/>
+            <circle cx="300" cy="180" r="30" fill="#0284c7"/>
+            <text x="300" y="190" font-size="28" font-weight="bold" fill="white" text-anchor="middle">1</text>
             
-            <!-- Hospital 2 Marker -->
-            <div class="marker marker-2" data-hospital="lincoln">
-              <div class="marker-label">2</div>
-              <div class="marker-popup">
-                <strong>Mercy Hospital Lincoln</strong><br>
-                Troy, MO 63379
-              </div>
-            </div>
-          </div>
-          <p style="text-align: center; color: #64748b; font-size: 12px; margin-top: 10px;">
-            📍 Click hospital markers or cards below to compare pricing
-          </p>
-        </div>
+            <!-- Hover tooltip -->
+            <g class="hospital-tooltip" opacity="0">
+              <rect x="200" y="90" width="200" height="70" rx="8" fill="white" stroke="#0284c7" stroke-width="2" filter="url(#shadow)"/>
+              <text x="300" y="115" font-size="13" font-weight="bold" fill="#0284c7" text-anchor="middle">Barnes Jewish</text>
+              <text x="300" y="135" font-size="12" fill="#1e293b" text-anchor="middle">St. Peters, MO 63376</text>
+              <text x="300" y="153" font-size="11" fill="#64748b" text-anchor="middle">Distance: 12 miles</text>
+            </g>
+          </g>
+          
+          <!-- Hospital 2: Mercy Lincoln -->
+          <g class="hospital-marker marker-2">
+            <circle cx="700" cy="280" r="60" fill="url(#mapGradient)" opacity="0.1"/>
+            <circle cx="700" cy="280" r="35" fill="#0ea5e9" filter="url(#shadow)"/>
+            <circle cx="700" cy="280" r="30" fill="#0284c7"/>
+            <text x="700" y="290" font-size="28" font-weight="bold" fill="white" text-anchor="middle">2</text>
+            
+            <!-- Hover tooltip -->
+            <g class="hospital-tooltip" opacity="0">
+              <rect x="600" y="190" width="200" height="70" rx="8" fill="white" stroke="#0284c7" stroke-width="2" filter="url(#shadow)"/>
+              <text x="700" y="215" font-size="13" font-weight="bold" fill="#0284c7" text-anchor="middle">Mercy Hospital</text>
+              <text x="700" y="235" font-size="12" fill="#1e293b" text-anchor="middle">Troy, MO 63379</text>
+              <text x="700" y="253" font-size="11" fill="#64748b" text-anchor="middle">Distance: 15 miles</text>
+            </g>
+          </g>
+          
+          <!-- Map labels -->
+          <text x="500" y="30" font-size="16" font-weight="600" fill="#1e40af" text-anchor="middle" text-shadow="1px 1px 2px rgba(255,255,255,0.7)">Hospital Locations - St. Louis Area</text>
+          <text x="500" y="385" font-size="11" fill="#0c4a6e" text-anchor="middle" font-weight="500">📍 Click markers or cards below to compare pricing</text>
+        </svg>
       </div>
 
       <!-- Hospital Comparison Cards -->

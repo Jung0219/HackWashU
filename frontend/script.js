@@ -58,11 +58,16 @@ const hospitals = [
 
 // Setup custom marker click handlers (no Google Maps needed)
 function setupMarkerClickHandlers() {
-  const markerElements = document.querySelectorAll('.marker');
+  const markerElements = document.querySelectorAll('.hospital-marker');
   markerElements.forEach((marker, index) => {
     marker.addEventListener('click', () => {
       const cardId = hospitals[index].cardId;
-      loadHospitalData(cardId);
+      const card = document.getElementById(cardId);
+      card.classList.add('active');
+      
+      // Remove active from the other card
+      const otherCard = index === 0 ? hospital2Card : hospital1Card;
+      otherCard.classList.remove('active');
     });
   });
 }
