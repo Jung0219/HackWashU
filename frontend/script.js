@@ -53,7 +53,7 @@ function handleFile(event) {
       proceduresEl.textContent = "Fetching hospital pricing...";
       pricingEl.textContent = "...";
 
-      // Chain second API call → fetch hospital pricing
+      // Fetch hospital pricing
       fetch(`http://localhost:5001/api/pricing?wound_type=${encodeURIComponent(lastPrediction)}`)
         .then(res => res.json())
         .then(priceData => {
@@ -70,17 +70,24 @@ function handleFile(event) {
 
             proceduresEl.innerHTML = `<ul>${procedureListHTML}</ul>`;
 
-            // Optional: show total estimated cost
-            const totalEstimate = procedures.reduce((sum, p) => sum + (p.pricing?.estimate || 0), 0);
-            pricingEl.innerHTML = `$${totalEstimate.toFixed(2)}`;
+            // Show average estimated cost
+            const validPrices = procedures
+              .map(p => p.pricing?.estimate)
+              .filter(price => typeof price === "number" && !isNaN(price));
+
+            if (validPrices.length > 0) {
+              const avgEstimate = validPrices.reduce((sum, p) => sum + p, 0) / validPrices.length;
+              pricingEl.innerHTML = `$${avgEstimate.toFixed(2)}`;
+            } else {
+              pricingEl.innerHTML = "N/A";
+            }
+
+            treatmentPlan.classList.add("show");
+            redoBtn.style.display = "inline-block";
           } else {
             proceduresEl.innerHTML = "<p>No procedure data available.</p>";
             pricingEl.innerHTML = "N/A";
           }
-
-
-          treatmentPlan.classList.add("show");
-          redoBtn.style.display = "inline-block";
         })
         .catch(err => {
           console.error("Pricing API error:", err);
@@ -88,7 +95,6 @@ function handleFile(event) {
           pricingEl.innerHTML = "<p>N/A</p>";
           treatmentPlan.classList.add("show");
         });
-
     })
     .catch(err => {
       console.error("Classification API error:", err);
