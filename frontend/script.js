@@ -20,11 +20,21 @@ const hospital2Card = document.getElementById('hospital2Card');
 const savingsSummary = document.getElementById('savingsSummary');
 const savingsText = document.getElementById('savingsText');
 
+// Webcam elements
+const webcamModal = document.getElementById('webcamModal');
+const webcamVideo = document.getElementById('webcamVideo');
+const webcamCanvas = document.getElementById('webcamCanvas');
+const capturePhotoBtn = document.getElementById('capturePhotoBtn');
+const retakePhotoBtn = document.getElementById('retakePhotoBtn');
+const confirmPhotoBtn = document.getElementById('confirmPhotoBtn');
+const closeWebcamModal = document.getElementById('closeWebcamModal');
+
 // Store wound type globally
 let currentWoundType = '';
 let map = null;
 let markers = [];
 let mapInitialized = false;
+let webcamStream = null;
 
 // Hospital data
 const hospitals = [
@@ -46,64 +56,125 @@ const hospitals = [
   }
 ];
 
-// Initialize Google Map
-function initMap() {
-  if (mapInitialized) return;
-  
-  const mapElement = document.getElementById('map');
-  if (!mapElement) {
-    console.error('Map container not found');
-    return;
-  }
-
-  // Center on ZIP 63377 area (between the two hospitals)
-  const center = { lat: 38.88, lng: -90.8 };
-  
-  map = new google.maps.Map(mapElement, {
-    zoom: 10,
-    center: center,
-    mapTypeControl: false,
-    fullscreenControl: false,
-    streetViewControl: false
-  });
-
-  // Add markers for hospitals
-  hospitals.forEach((hospital, index) => {
-    const marker = new google.maps.Marker({
-      position: { lat: hospital.lat, lng: hospital.lng },
-      map: map,
-      title: hospital.name,
-      label: {
-        text: (index + 1).toString(),
-        color: 'white',
-        fontWeight: 'bold'
-      },
-      animation: google.maps.Animation.DROP
+// Setup custom marker click handlers (no Google Maps needed)
+function setupMarkerClickHandlers() {
+  const markerElements = document.querySelectorAll('.marker');
+  markerElements.forEach((marker, index) => {
+    marker.addEventListener('click', () => {
+      const cardId = hospitals[index].cardId;
+      loadHospitalData(cardId);
     });
-
-    // Click marker to show hospital details
-    marker.addListener('click', () => {
-      loadHospitalData(hospital.cardId);
-      map.panTo(marker.getPosition());
-      marker.setAnimation(google.maps.Animation.BOUNCE);
-      setTimeout(() => marker.setAnimation(null), 2000);
-    });
-
-    markers.push(marker);
   });
-  
-  mapInitialized = true;
 }
-
-// Make initMap globally accessible
-window.initMap = initMap;
 
 // Modal logic for choosing between taking a photo or uploading one
 submitBtn.addEventListener('click', () => modal.style.display = 'flex');
 closeModal.addEventListener('click', () => modal.style.display = 'none');
-takePhotoBtn.addEventListener('click', () => { modal.style.display = 'none'; cameraInput.click(); });
+takePhotoBtn.addEventListener('click', () => {
+  modal.style.display = 'none';
+  webcamModal.style.display = 'flex';
+  startWebcam();
+});
 uploadPhotoBtn.addEventListener('click', () => { modal.style.display = 'none'; uploadInput.click(); });
 window.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+
+// Webcam modal logic
+closeWebcamModal.addEventListener('click', () => {
+  stopWebcam();
+  webcamModal.style.display = 'none';
+});
+
+window.addEventListener('click', e => {
+  if (e.target === webcamModal) {
+    stopWebcam();
+    webcamModal.style.display = 'none';
+  }
+});
+
+// Start webcam stream
+function startWebcam() {
+  const constraints = {
+    video: {
+      facingMode: 'environment',
+      width: { ideal: 1280 },
+      height: { ideal: 720 }
+    },
+    audio: false
+  };
+
+  navigator.mediaDevices.getUserMedia(constraints)
+    .then(stream => {
+      webcamStream = stream;
+      webcamVideo.srcObject = stream;
+      webcamVideo.style.display = 'block';
+      
+      // Reset buttons
+      capturePhotoBtn.style.display = 'inline-block';
+      retakePhotoBtn.style.display = 'none';
+      confirmPhotoBtn.style.display = 'none';
+    })
+    .catch(err => {
+      console.error('Error accessing webcam:', err);
+      alert('Unable to access webcam. Please check permissions and try again.');
+      webcamModal.style.display = 'none';
+      modal.style.display = 'flex';
+    });
+}
+
+// Stop webcam stream
+function stopWebcam() {
+  if (webcamStream) {
+    webcamStream.getTracks().forEach(track => track.stop());
+    webcamStream = null;
+  }
+  webcamVideo.srcObject = null;
+}
+
+// Capture photo from webcam
+capturePhotoBtn.addEventListener('click', () => {
+  const context = webcamCanvas.getContext('2d');
+  webcamCanvas.width = webcamVideo.videoWidth;
+  webcamCanvas.height = webcamVideo.videoHeight;
+  
+  context.drawImage(webcamVideo, 0, 0);
+  
+  // Display captured image in video area
+  webcamVideo.style.display = 'none';
+  webcamCanvas.style.display = 'block';
+  
+  // Show retake and confirm buttons
+  capturePhotoBtn.style.display = 'none';
+  retakePhotoBtn.style.display = 'inline-block';
+  confirmPhotoBtn.style.display = 'inline-block';
+});
+
+// Retake photo (go back to live stream)
+retakePhotoBtn.addEventListener('click', () => {
+  webcamVideo.style.display = 'block';
+  webcamCanvas.style.display = 'none';
+  
+  capturePhotoBtn.style.display = 'inline-block';
+  retakePhotoBtn.style.display = 'none';
+  confirmPhotoBtn.style.display = 'none';
+});
+
+// Confirm and use photo
+confirmPhotoBtn.addEventListener('click', () => {
+  webcamCanvas.toBlob(blob => {
+    const file = new File([blob], 'webcam-photo.jpg', { type: 'image/jpeg' });
+    
+    stopWebcam();
+    webcamModal.style.display = 'none';
+    
+    // Process the captured image
+    const event = {
+      target: {
+        files: [file]
+      }
+    };
+    handleFile(event);
+  }, 'image/jpeg', 0.95);
+});
 
 // Handle file upload or photo capture
 function handleFile(event) {
@@ -161,14 +232,9 @@ searchHospitalsBtn.addEventListener('click', () => {
   // Show map section
   mapSection.style.display = "block";
   
-  // Force map to reinitialize after display
+  // Setup marker click handlers
   setTimeout(() => {
-    if (!mapInitialized) {
-      initMap();
-    } else {
-      // Trigger map to refresh
-      google.maps.event.trigger(map, 'resize');
-    }
+    setupMarkerClickHandlers();
     mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 100);
 
