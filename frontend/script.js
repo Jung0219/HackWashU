@@ -53,6 +53,7 @@ function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
     zoom: 10,
     center: center,
+    disableDefaultUI: false,
     styles: [
       {
         featureType: "poi.medical",
@@ -221,14 +222,16 @@ function displayHospitalPricing(card, data) {
 
   html += '</ul>';
 
-  // Calculate total
+  // Calculate total - only show if greater than 0
   const total = data.total_estimate || 0;
-  html += `
-    <div class="total-estimate">
-      <h4>Total Estimated Cost:</h4>
-      <p>$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-    </div>
-  `;
+  if (total > 0) {
+    html += `
+      <div class="total-estimate">
+        <h4>Total Estimated Cost:</h4>
+        <p>$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+      </div>
+    `;
+  }
 
   body.innerHTML = html;
 }
@@ -291,12 +294,14 @@ function displayComparisonInCard(card, hospitalData) {
   html += '</ul>';
 
   const total = hospitalData.total_estimate || 0;
-  html += `
-    <div class="total-estimate">
-      <h4>Total Estimated Cost:</h4>
-      <p>$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-    </div>
-  `;
+  if (total > 0) {
+    html += `
+      <div class="total-estimate">
+        <h4>Total Estimated Cost:</h4>
+        <p>$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+      </div>
+    `;
+  }
 
   body.innerHTML = html;
 }
