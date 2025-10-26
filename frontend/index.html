@@ -101,9 +101,19 @@
   </div>
 
   <script src="script.js"></script>
-  <!-- Google Maps API -->
+  <!-- Google Maps API - Callback loads map after DOM is ready -->
+  <script>
+    // Wait for DOM to be fully loaded before initializing map
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        if (typeof google !== 'undefined' && google.maps) {
+          window.initMap();
+        }
+      }, 500);
+    });
+  </script>
   <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsL6l9chj5Af2EFLPzjEK4WJ5GwbTxhJ8&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsL6l9chj5Af2EFLPzjEK4WJ5GwbTxhJ8&callback=window.initMap">
   </script>
 </body>
 </html>

@@ -24,6 +24,7 @@ const savingsText = document.getElementById('savingsText');
 let currentWoundType = '';
 let map = null;
 let markers = [];
+let mapInitialized = false;
 
 // Hospital data
 const hospitals = [
@@ -47,20 +48,23 @@ const hospitals = [
 
 // Initialize Google Map
 function initMap() {
+  if (mapInitialized) return;
+  
+  const mapElement = document.getElementById('map');
+  if (!mapElement) {
+    console.error('Map container not found');
+    return;
+  }
+
   // Center on ZIP 63377 area (between the two hospitals)
   const center = { lat: 38.88, lng: -90.8 };
   
-  map = new google.maps.Map(document.getElementById('map'), {
+  map = new google.maps.Map(mapElement, {
     zoom: 10,
     center: center,
-    disableDefaultUI: false,
-    styles: [
-      {
-        featureType: "poi.medical",
-        elementType: "geometry",
-        stylers: [{ color: "#ffdde0" }]
-      }
-    ]
+    mapTypeControl: false,
+    fullscreenControl: false,
+    streetViewControl: false
   });
 
   // Add markers for hospitals
@@ -79,7 +83,7 @@ function initMap() {
 
     // Click marker to show hospital details
     marker.addListener('click', () => {
-      loadHospitalPricing(hospital.api_id, hospital.cardId);
+      loadHospitalData(hospital.cardId);
       map.panTo(marker.getPosition());
       marker.setAnimation(google.maps.Animation.BOUNCE);
       setTimeout(() => marker.setAnimation(null), 2000);
@@ -87,6 +91,8 @@ function initMap() {
 
     markers.push(marker);
   });
+  
+  mapInitialized = true;
 }
 
 // Make initMap globally accessible
@@ -155,8 +161,14 @@ searchHospitalsBtn.addEventListener('click', () => {
   // Show map section
   mapSection.style.display = "block";
   
-  // Scroll to map
+  // Force map to reinitialize after display
   setTimeout(() => {
+    if (!mapInitialized) {
+      initMap();
+    } else {
+      // Trigger map to refresh
+      google.maps.event.trigger(map, 'resize');
+    }
     mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 100);
 
@@ -172,35 +184,24 @@ function resetHospitalCards() {
   [hospital1Card, hospital2Card].forEach(card => {
     card.classList.remove('active');
     const body = card.querySelector('.hospital-body');
-    body.innerHTML = '<p class="loading-text">Click to view pricing details...</p>';
+    body.innerHTML = '<p class="loading-text">Click hospital card to view pricing details...</p>';
   });
   savingsSummary.style.display = 'none';
 }
 
-// Load pricing for a specific hospital when clicked
-function loadHospitalPricing(hospitalId, cardId) {
+// Load hospital data when card is clicked
+function loadHospitalData(cardId) {
   const card = document.getElementById(cardId);
   card.classList.add('active');
   
-  const body = card.querySelector('.hospital-body');
-  body.innerHTML = '<p class="loading-text">Loading pricing data...</p>';
-
-  fetch(`http://localhost:5001/api/pricing?wound_type=${encodeURIComponent(currentWoundType)}`)
-    .then(res => res.json())
-    .then(data => {
-      console.log(`Pricing for ${hospitalId}:`, data);
-      displayHospitalPricing(card, data);
-    })
-    .catch(err => {
-      console.error(`Error loading ${hospitalId} pricing:`, err);
-      body.innerHTML = '<p style="color: #ef4444;">Failed to load pricing data</p>';
-    });
+  // Just highlight - data already loaded via loadComparisonPricing
+  // This function is for visual feedback on click
 }
 
 // Display pricing in hospital card
-function displayHospitalPricing(card, data) {
+function displayHospitalPricing(card, hospitalData) {
   const body = card.querySelector('.hospital-body');
-  const procedures = data.procedures || [];
+  const procedures = hospitalData.procedures || [];
 
   if (procedures.length === 0) {
     body.innerHTML = '<p>No procedures found for this injury type.</p>';
@@ -222,8 +223,8 @@ function displayHospitalPricing(card, data) {
 
   html += '</ul>';
 
-  // Calculate total - only show if greater than 0
-  const total = data.total_estimate || 0;
+  // Always show total estimate if available
+  const total = hospitalData.total_estimate || 0;
   if (total > 0) {
     html += `
       <div class="total-estimate">
@@ -246,10 +247,10 @@ function loadComparisonPricing() {
       // Display pricing for each hospital
       if (data.comparison && data.comparison.length >= 2) {
         // Barnes Jewish (first hospital)
-        displayComparisonInCard(hospital1Card, data.comparison[0]);
+        displayHospitalPricing(hospital1Card, data.comparison[0]);
         
         // Lincoln (second hospital)
-        displayComparisonInCard(hospital2Card, data.comparison[1]);
+        displayHospitalPricing(hospital2Card, data.comparison[1]);
 
         // Show savings if available
         if (data.savings) {
@@ -265,56 +266,21 @@ function loadComparisonPricing() {
     })
     .catch(err => {
       console.error('Error loading comparison:', err);
+      alert('Failed to load hospital pricing. Make sure backend is running on localhost:5001');
     });
-}
-
-// Display comparison data in a card
-function displayComparisonInCard(card, hospitalData) {
-  const body = card.querySelector('.hospital-body');
-  const procedures = hospitalData.procedures || [];
-
-  if (procedures.length === 0) {
-    body.innerHTML = '<p>No procedures available for this injury.</p>';
-    return;
-  }
-
-  let html = '<h4 style="margin: 0 0 10px 0; color: #1e3a8a;">Available Procedures:</h4>';
-  html += '<ul class="procedures-list">';
-
-  procedures.forEach(proc => {
-    const estimate = proc.pricing?.estimate || 0;
-    html += `
-      <li>
-        <span class="procedure-name">${proc.name}</span>
-        <span class="procedure-price">$${estimate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-      </li>
-    `;
-  });
-
-  html += '</ul>';
-
-  const total = hospitalData.total_estimate || 0;
-  if (total > 0) {
-    html += `
-      <div class="total-estimate">
-        <h4>Total Estimated Cost:</h4>
-        <p>$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-      </div>
-    `;
-  }
-
-  body.innerHTML = html;
 }
 
 // Hospital card click handlers
 hospital1Card.addEventListener('click', () => {
   hospital1Card.classList.add('active');
   hospital2Card.classList.remove('active');
+  loadHospitalData('hospital1Card');
 });
 
 hospital2Card.addEventListener('click', () => {
   hospital2Card.classList.add('active');
   hospital1Card.classList.remove('active');
+  loadHospitalData('hospital2Card');
 });
 
 // Redo button resets the UI
@@ -328,7 +294,9 @@ redoBtn.addEventListener('click', () => {
   mapSection.style.display = "none";
   currentWoundType = '';
   detectedInjury.textContent = "-";
-  zipInput.value = "63377";
+  zipInput.value = "";
+  mapInitialized = false;
+  markers = [];
 });
 
 // Event listeners for upload/camera
