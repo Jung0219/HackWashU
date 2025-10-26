@@ -346,26 +346,35 @@ function calculatePatientCost(hospitalCost) {
       insurancePays: 0,
       deductibleApplied: 0,
       copayApplied: 0,
+      coinsurance: 0,
       patientOwes: hospitalCost
     };
   }
 
-  const insuranceCoverageAmount = hospitalCost * (insuranceData.coverage / 100);
-  const hospitalResponsibility = hospitalCost - insuranceCoverageAmount;
+  // Standard insurance order:
+  // 1. Patient pays deductible first (up to the full cost)
+  const deductibleApplied = Math.min(insuranceData.deductible, hospitalCost);
+  const afterDeductible = hospitalCost - deductibleApplied;
   
-  // Deductible applies first
-  const deductibleApplied = Math.min(insuranceData.deductible, hospitalResponsibility);
-  const afterDeductible = hospitalResponsibility - deductibleApplied;
+  // 2. Insurance covers their percentage of what remains after deductible
+  const insuranceCoverageAmount = afterDeductible * (insuranceData.coverage / 100);
   
-  // Co-pay applies after deductible
+  // 3. Patient pays the coinsurance (remaining percentage after insurance)
+  const patientCoinsurance = afterDeductible - insuranceCoverageAmount;
+  
+  // 4. Add copay (flat fee)
   const copayApplied = insuranceData.copay;
+  
+  // Total patient responsibility
+  const patientOwes = deductibleApplied + patientCoinsurance + copayApplied;
   
   return {
     hospitalCharge: hospitalCost,
     insurancePays: insuranceCoverageAmount,
     deductibleApplied: deductibleApplied,
     copayApplied: copayApplied,
-    patientOwes: afterDeductible + copayApplied
+    coinsurance: patientCoinsurance,
+    patientOwes: patientOwes
   };
 }
 
@@ -416,6 +425,13 @@ function displayHospitalPricingWithInsurance(card, hospitalData) {
         html += `<div class="price-row">
           <span class="price-label">Your Deductible:</span>
           <span class="price-value">$${costs.deductibleApplied.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        </div>`;
+      }
+      
+      if (costs.coinsurance > 0) {
+        html += `<div class="price-row">
+          <span class="price-label">Your Coinsurance (${100 - insuranceData.coverage}%):</span>
+          <span class="price-value">$${costs.coinsurance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
         </div>`;
       }
       
