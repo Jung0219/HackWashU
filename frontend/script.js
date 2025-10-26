@@ -86,8 +86,8 @@ const hospitals = [
 function initMapbox() {
   if (mapInitialized) return;
   
-  // Set your Mapbox access token here - REPLACE WITH YOUR TOKEN
-  mapboxgl.accessToken = 'pk.eyJ1IjoieW91ci1tYXBib3gtdXNlcm5hbWUiLCJhIjoiY201YWIyMzAifQ.pk.eyJ1IjoiZWQwODI3IiwiYSI6ImNtaDc4eGNldjBvczAybXB6ZW5lZ3BzdWEifQ.rRf3regcDzFGfLKgdIxnMQ';
+  // Set your Mapbox access token
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZWQwODI3IiwiYSI6ImNtaDc4eGNldjBvczAybXB6ZW5lZ3BzdWEifQ.rRf3regcDzFGfLKgdIxnMQ';
   
   // Center between the two hospitals
   map = new mapboxgl.Map({
