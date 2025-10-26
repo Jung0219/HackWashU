@@ -85,10 +85,10 @@ const hospitals = [
 // Initialize Mapbox
 function initMapbox() {
   if (mapInitialized) return;
-  
-  // Set your Mapbox access token here - REPLACE WITH YOUR TOKEN
-  mapboxgl.accessToken = 'pk.eyJ1IjoieW91ci1tYXBib3gtdXNlcm5hbWUiLCJhIjoiY201YWIyMzAifQ.pk.eyJ1IjoiZWQwODI3IiwiYSI6ImNtaDc4eGNldjBvczAybXB6ZW5lZ3BzdWEifQ.rRf3regcDzFGfLKgdIxnMQ';
-  
+
+  // Set your Mapbox access token here
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZWQwODI3IiwiYSI6ImNtaDc4eGNldjBvczAybXB6ZW5lZ3BzdWEifQ.rRf3regcDzFGfLKgdIxnMQ';
+
   // Center between the two hospitals
   map = new mapboxgl.Map({
     container: 'map',
@@ -109,14 +109,15 @@ function initMapbox() {
     el.style.cursor = 'pointer';
     el.style.backgroundRepeat = 'no-repeat';
     el.style.transition = 'transform 0.3s ease';
-    
+    el.style.transformOrigin = 'center bottom';
+
     // Add hover effect
-    el.addEventListener('mouseenter', () => {
-      el.style.transform = 'scale(1.3)';
-    });
-    el.addEventListener('mouseleave', () => {
-      el.style.transform = 'scale(1)';
-    });
+    //el.addEventListener('mouseenter', () => {
+    //  el.style.transform = 'translateY(-5px) scale(1.2)';
+    //});
+    //el.addEventListener('mouseleave', () => {
+    //  el.style.transform = 'translateY(0) scale(1)';
+    //});
 
     // Create popup
     const popupContent = document.createElement('div');
@@ -193,7 +194,7 @@ function startWebcam() {
       webcamStream = stream;
       webcamVideo.srcObject = stream;
       webcamVideo.style.display = 'block';
-      
+
       // Reset buttons
       capturePhotoBtn.style.display = 'inline-block';
       retakePhotoBtn.style.display = 'none';
@@ -221,13 +222,13 @@ capturePhotoBtn.addEventListener('click', () => {
   const context = webcamCanvas.getContext('2d');
   webcamCanvas.width = webcamVideo.videoWidth;
   webcamCanvas.height = webcamVideo.videoHeight;
-  
+
   context.drawImage(webcamVideo, 0, 0);
-  
+
   // Display captured image in video area
   webcamVideo.style.display = 'none';
   webcamCanvas.style.display = 'block';
-  
+
   // Show retake and confirm buttons
   capturePhotoBtn.style.display = 'none';
   retakePhotoBtn.style.display = 'inline-block';
@@ -238,7 +239,7 @@ capturePhotoBtn.addEventListener('click', () => {
 retakePhotoBtn.addEventListener('click', () => {
   webcamVideo.style.display = 'block';
   webcamCanvas.style.display = 'none';
-  
+
   capturePhotoBtn.style.display = 'inline-block';
   retakePhotoBtn.style.display = 'none';
   confirmPhotoBtn.style.display = 'none';
@@ -248,10 +249,10 @@ retakePhotoBtn.addEventListener('click', () => {
 confirmPhotoBtn.addEventListener('click', () => {
   webcamCanvas.toBlob(blob => {
     const file = new File([blob], 'webcam-photo.jpg', { type: 'image/jpeg' });
-    
+
     stopWebcam();
     webcamModal.style.display = 'none';
-    
+
     // Process the captured image
     const event = {
       target: {
@@ -352,14 +353,14 @@ function calculatePatientCost(hospitalCost) {
 
   const insuranceCoverageAmount = hospitalCost * (insuranceData.coverage / 100);
   const hospitalResponsibility = hospitalCost - insuranceCoverageAmount;
-  
+
   // Deductible applies first
   const deductibleApplied = Math.min(insuranceData.deductible, hospitalResponsibility);
   const afterDeductible = hospitalResponsibility - deductibleApplied;
-  
+
   // Co-pay applies after deductible
   const copayApplied = insuranceData.copay;
-  
+
   return {
     hospitalCharge: hospitalCost,
     insurancePays: insuranceCoverageAmount,
@@ -387,7 +388,7 @@ function displayHospitalPricingWithInsurance(card, hospitalData) {
     html += `
       <li>
         <span class="procedure-name">${proc.name}</span>
-        <span class="procedure-price">$${estimate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        <span class="procedure-price">$${estimate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
       </li>
     `;
   });
@@ -396,40 +397,40 @@ function displayHospitalPricingWithInsurance(card, hospitalData) {
 
   // Calculate totals
   const totalHospitalCharge = hospitalData.total_estimate || 0;
-  
+
   if (totalHospitalCharge > 0) {
     const costs = calculatePatientCost(totalHospitalCharge);
-    
+
     html += `<div class="pricing-breakdown">`;
     html += `<div class="price-row">
       <span class="price-label">Hospital Charge:</span>
-      <span class="price-value">$${costs.hospitalCharge.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+      <span class="price-value">$${costs.hospitalCharge.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
     </div>`;
-    
+
     if (insuranceData.hasInsurance) {
       html += `<div class="price-row">
         <span class="price-label">Insurance Covers (${insuranceData.coverage}%):</span>
-        <span class="price-value" style="color: #10b981;">-$${costs.insurancePays.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        <span class="price-value" style="color: #10b981;">-$${costs.insurancePays.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
       </div>`;
-      
+
       if (costs.deductibleApplied > 0) {
         html += `<div class="price-row">
           <span class="price-label">Your Deductible:</span>
-          <span class="price-value">$${costs.deductibleApplied.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+          <span class="price-value">$${costs.deductibleApplied.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </div>`;
       }
-      
+
       if (costs.copayApplied > 0) {
         html += `<div class="price-row">
           <span class="price-label">Co-pay:</span>
-          <span class="price-value">$${costs.copayApplied.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+          <span class="price-value">$${costs.copayApplied.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </div>`;
       }
     }
-    
+
     html += `<div class="price-row">
       <span class="price-label" style="font-size: 15px;">YOU PAY:</span>
-      <span class="price-value" style="font-size: 18px;">$${costs.patientOwes.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+      <span class="price-value" style="font-size: 18px;">$${costs.patientOwes.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
     </div>`;
     html += `</div>`;
   }
@@ -453,11 +454,11 @@ function loadComparisonPricingWithInsurance() {
     .then(res => res.json())
     .then(data => {
       console.log('Comparison data:', data);
-      
+
       if (data.comparison && data.comparison.length >= 2) {
         hospitalPricingData.barnes_jewish = data.comparison[0];
         hospitalPricingData.lincoln = data.comparison[1];
-        
+
         displayHospitalPricingWithInsurance(hospital1Card, data.comparison[0]);
         displayHospitalPricingWithInsurance(hospital2Card, data.comparison[1]);
 
@@ -467,12 +468,12 @@ function loadComparisonPricingWithInsurance() {
           const barnes1Cost = calculatePatientCost(data.comparison[0].total_estimate || 0);
           const lincolnCost = calculatePatientCost(data.comparison[1].total_estimate || 0);
           const patientSavings = barnes1Cost.patientOwes - lincolnCost.patientOwes;
-          const percentSaved = barnes1Cost.patientOwes > 0 
+          const percentSaved = barnes1Cost.patientOwes > 0
             ? ((patientSavings / barnes1Cost.patientOwes) * 100).toFixed(1)
             : 0;
 
           savingsText.innerHTML = `
-            <strong>Save $${Math.abs(patientSavings).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} 
+            <strong>Save $${Math.abs(patientSavings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
             (${percentSaved}%)</strong><br>
             on your out-of-pocket costs by choosing ${savings.cheaper_hospital === 'Lincoln' ? 'Mercy Hospital Lincoln' : 'Barnes Jewish St. Peters'}!
           `;
@@ -489,7 +490,7 @@ function loadComparisonPricingWithInsurance() {
 // Search for hospitals
 searchHospitalsBtn.addEventListener('click', () => {
   const zipCode = zipInput.value.trim();
-  
+
   if (zipCode.length !== 5) {
     alert('Please enter a valid 5-digit ZIP code');
     return;
@@ -500,7 +501,7 @@ searchHospitalsBtn.addEventListener('click', () => {
 
   // Show map section
   mapSection.style.display = "block";
-  
+
   // Initialize Mapbox after display
   setTimeout(() => {
     initMapbox();
@@ -509,7 +510,7 @@ searchHospitalsBtn.addEventListener('click', () => {
 
   // Reset hospital cards
   resetHospitalCards();
-  
+
   // Load comparison pricing
   loadComparisonPricingWithInsurance();
 });
@@ -550,11 +551,11 @@ redoBtn.addEventListener('click', () => {
   detectedInjury.textContent = "-";
   zipInput.value = "";
   mapInitialized = false;
-  
+
   // Remove Mapbox markers
   markers.forEach(marker => marker.remove());
   markers = [];
-  
+
   insuranceData = {
     plan: '',
     coverage: 90,
