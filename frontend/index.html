@@ -5,66 +5,129 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Wound Care Price Navigator</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Mapbox CSS -->
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
 </head>
 <body class="home-page">
   <div class="container">
-    <div class="box-1">
-      <!-- initial title and button to upload photo -->
-      <h1 style="color: #8B8D8B">Injury Detection</h1>
-      <button id="submitInjury">Upload Photo</button>
+    <!-- TOP SECTION: Image Upload and Injury Detection -->
+    <div class="top-section">
+      <div class="box-1">
+        <!-- initial title and button to upload photo -->
+        <h1 style="color: #8B8D8B">Injury Detection</h1>
+        <button id="submitInjury">Upload Photo</button>
 
-      <!-- hidden file inputs -->
-      <input type="file" id="uploadInput" accept="image/*" style="display:none" />
-      <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" />
+        <!-- hidden file inputs -->
+        <input type="file" id="uploadInput" accept="image/*" style="display:none" />
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" />
 
-      <!-- choose between taking and uploading a photo to be analyzed -->
-      <div id="photoModal" class="modal">
-        <div class="modal-content">
-          <h3 style="color: #8B8D8B">Choose an option</h3>
-          <div class="modal-buttons">
-            <button id="takePhotoBtn">
-              <img src="cam.png" alt="Camera Icon" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;" />
-              Take Photo
-            </button>
-            <button id="uploadPhotoBtn">
-              <img src="photo.png" alt="Upload Icon" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;" />
-              Upload Image
-            </button>
+        <!-- choose between taking and uploading a photo to be analyzed -->
+        <div id="photoModal" class="modal">
+          <div class="modal-content">
+            <h3 style="color: #8B8D8B">Choose an option</h3>
+            <div class="modal-buttons">
+              <button id="takePhotoBtn">
+                <img src="cam.png" alt="Camera Icon" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;" />
+                Take Photo
+              </button>
+              <button id="uploadPhotoBtn">
+                <img src="photo.png" alt="Upload Icon" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;" />
+                Upload Image
+              </button>
+            </div>
+            <button id="closeModal" class="close">Cancel</button>
           </div>
-          <button id="closeModal" class="close">Cancel</button>
         </div>
-      </div>
 
-      <!-- image preview -->
-      <img id="preview" class="camera" alt="Preview" />
-
-      <!-- loading text -->
-      <p id="loading" style="display:none; color: #8B8D8B;">Analyzing...</p>
-
-      <!-- ZIP code input section -->
-      <div id="zipSection" class="zip-section" style="display:none;">
-        <h3 style="color: #8B8D8B; margin-top: 20px;">Find Nearby Hospitals</h3>
-        <div class="zip-input-container">
-          <input type="text" id="zipInput" placeholder="Enter ZIP Code" value="63377" maxlength="5" />
-          <button id="searchHospitals">Search Hospitals</button>
+        <!-- Webcam Modal -->
+        <div id="webcamModal" class="modal">
+          <div class="modal-content webcam-modal-content">
+            <h3 style="color: #8B8D8B">Capture Injury Photo</h3>
+            <div class="webcam-container">
+              <video id="webcamVideo" autoplay playsinline></video>
+              <canvas id="webcamCanvas" style="display:none;"></canvas>
+            </div>
+            <div class="webcam-controls">
+              <button id="capturePhotoBtn" class="capture-btn">📷 Capture Photo</button>
+              <button id="retakePhotoBtn" style="display:none;">Retake Photo</button>
+              <button id="confirmPhotoBtn" style="display:none;" class="confirm-btn">✓ Use Photo</button>
+            </div>
+            <button id="closeWebcamModal" class="close">Cancel</button>
+          </div>
         </div>
-      </div>
 
-      <!-- Initial treatment info -->
-      <div id="injuryInfo" class="injury-info" style="display:none;">
-        <h3 style="color: #8B8D8B;">Detected Injury</h3>
-        <p id="detectedInjury" style="color: #2c5f7c; font-size: 20px; font-weight: bold;">-</p>
-      </div>
+        <!-- image preview -->
+        <img id="preview" class="camera" alt="Preview" />
 
-      <button id="redoBtn" style="display:none; margin-top:15px;">Try Another Image</button>
+        <!-- loading text -->
+        <p id="loading" style="display:none; color: #8B8D8B;">Analyzing...</p>
+
+        <!-- Initial treatment info -->
+        <div id="injuryInfo" class="injury-info" style="display:none;">
+          <h3 style="color: #8B8D8B;">Detected Injury</h3>
+          <p id="detectedInjury" style="color: #2c5f7c; font-size: 20px; font-weight: bold;">-</p>
+        </div>
+
+        <!-- ZIP code input section -->
+        <div id="zipSection" class="zip-section" style="display:none;">
+          <h3 style="color: #8B8D8B; margin-top: 20px;">Find Nearby Hospitals</h3>
+          <div class="zip-input-container">
+            <input type="text" id="zipInput" placeholder="Enter ZIP Code" value="" maxlength="5" />
+            <button id="searchHospitals">Search Hospitals</button>
+          </div>
+        </div>
+
+        <!-- Insurance Information Section -->
+        <div id="insuranceSection" class="insurance-section" style="display:none;">
+          <h3 style="color: #8B8D8B; margin-top: 20px;">Insurance Information (Optional)</h3>
+          <div class="insurance-form">
+            <div class="form-group">
+              <label for="insurancePlan">Insurance Plan:</label>
+              <select id="insurancePlan">
+                <option value="">-- Select Plan --</option>
+                <option value="uhc">UnitedHealthcare (UHC)</option>
+                <option value="cigna">Cigna</option>
+                <option value="bcbs">Blue Cross Blue Shield (BCBS)</option>
+                <option value="aetna">Aetna</option>
+                <option value="none">No Insurance / Self-Pay</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="coveragePercentage">Coverage %:</label>
+              <div class="slider-container">
+                <input type="range" id="coveragePercentage" min="0" max="100" value="90" />
+                <span id="coveragePercentageValue">90%</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="deductible">Deductible ($):</label>
+              <input type="number" id="deductible" placeholder="e.g., 500" value="500" min="0" />
+            </div>
+
+            <div class="form-group">
+              <label for="copay">Co-pay ($):</label>
+              <input type="number" id="copay" placeholder="e.g., 50" value="50" min="0" />
+            </div>
+
+            <button id="updateInsurance" class="insurance-btn">Calculate My Costs</button>
+          </div>
+          <div id="insuranceNotice" class="insurance-notice" style="display:none;">
+            <p id="insuranceNoticeText"></p>
+          </div>
+        </div>
+
+        <button id="redoBtn" style="display:none; margin-top:15px;">Try Another Image</button>
+      </div>
     </div>
 
-    <!-- Map and Hospital Comparison Section -->
+    <!-- BOTTOM SECTION: Map and Hospital Comparison -->
     <div id="mapSection" class="map-section" style="display:none;">
-      <h2 style="color: #8B8D8B; text-align: center;">Hospitals Near You</h2>
+      <h2 style="color: #8B8D8B; text-align: center; margin-top: 0;">Hospitals Near You</h2>
       
-      <!-- Google Map -->
-      <div id="map" style="width: 100%; height: 400px; border-radius: 10px; margin-bottom: 20px;"></div>
+      <!-- Mapbox Map Container -->
+      <div id="map" class="mapbox-container"></div>
 
       <!-- Hospital Comparison Cards -->
       <div id="hospitalComparison" class="hospital-comparison">
@@ -97,10 +160,7 @@
     </div>
   </div>
 
+  <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
   <script src="script.js"></script>
-  <!-- Google Maps API - Replace YOUR_API_KEY with actual key -->
-  <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
-  </script>
 </body>
 </html>
