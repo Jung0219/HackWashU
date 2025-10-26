@@ -1,4 +1,4 @@
-// define all html elements as variables based on their ids
+// Define all HTML elements
 const submitBtn = document.getElementById('submitInjury');
 const uploadInput = document.getElementById('uploadInput');
 const cameraInput = document.getElementById('cameraInput');
@@ -14,14 +14,14 @@ const proceduresEl = document.getElementById('procedures');
 const pricingEl = document.getElementById('pricing');
 const redoBtn = document.getElementById('redoBtn');
 
-// modal logic for choosing between taking a photo or uploading one
+// Modal logic for choosing between taking a photo or uploading one
 submitBtn.addEventListener('click', () => modal.style.display = 'flex');
 closeModal.addEventListener('click', () => modal.style.display = 'none');
 takePhotoBtn.addEventListener('click', () => { modal.style.display = 'none'; cameraInput.click(); });
 uploadPhotoBtn.addEventListener('click', () => { modal.style.display = 'none'; uploadInput.click(); });
 window.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
 
-// handle file upload or photo capture
+// Handle file upload or photo capture
 function handleFile(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -32,33 +32,52 @@ function handleFile(event) {
   loading.style.display = "block";
   submitBtn.style.display = "none";
   redoBtn.style.display = "none";
-
-  // hide treatment plan first
   treatmentPlan.classList.remove("show");
 
-  // prepare file for sending
+  // Prepare file for sending
   const formData = new FormData();
   formData.append("file", file);
 
-  // send to backend for prediction
-  fetch("http://127.0.0.1:8000/predict", {
+  // Send to Flask backend for classification
+  fetch("http://127.0.0.1:5005/predict", {
     method: "POST",
     body: formData,
   })
     .then(res => res.json())
     .then(data => {
       loading.style.display = "none";
+      const lastPrediction = data.predicted_class || "Unknown injury";
 
-      // update UI with backend response
-      injuryEl.textContent = data.predicted_class || "Unknown injury";
-      proceduresEl.textContent = "Apply proper first aid";
-      pricingEl.textContent = `$${(Math.random() * 30 + 5).toFixed(2)}`;
+      // Show preliminary result
+      injuryEl.textContent = lastPrediction;
+      proceduresEl.textContent = "Fetching hospital pricing...";
+      pricingEl.textContent = "...";
 
-      // show animated treatment plan
-      treatmentPlan.classList.add("show");
+      // Chain second API call → fetch hospital pricing
+      fetch(`http://localhost:5001/api/pricing?wound_type=${encodeURIComponent(lastPrediction)}`)
+        .then(res => res.json())
+        .then(priceData => {
+          console.log("Full pricing API response:", priceData);
+
+          // Format full JSON for debugging (visible in UI)
+          const fullResponseText = JSON.stringify(priceData, null, 2);
+
+          // Display raw response temporarily for debugging
+          proceduresEl.textContent = fullResponseText;
+          pricingEl.textContent = "See console for full details";
+
+          // Animate treatment plan in
+          treatmentPlan.classList.add("show");
+        })
+        .catch(err => {
+          console.error("Pricing API error:", err);
+          proceduresEl.textContent = "Failed to fetch pricing data.";
+          pricingEl.textContent = "N/A";
+          treatmentPlan.classList.add("show");
+        });
     })
     .catch(err => {
-      console.error("Error:", err);
+      console.error("Classification API error:", err);
       loading.style.display = "none";
       treatmentPlan.classList.add("show");
       injuryEl.textContent = "Error analyzing image";
@@ -68,6 +87,7 @@ function handleFile(event) {
     });
 }
 
+// Redo button resets the UI
 redoBtn.addEventListener('click', () => {
   preview.style.display = "none";
   preview.src = "";
@@ -79,6 +99,6 @@ redoBtn.addEventListener('click', () => {
   pricingEl.textContent = "-";
 });
 
-// event listeners for file uploads
+// Event listeners for upload/camera
 uploadInput.addEventListener('change', handleFile);
 cameraInput.addEventListener('change', handleFile);
