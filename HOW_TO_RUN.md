@@ -1,5 +1,7 @@
 # How to Run - HackWashU Pricing API
 
+python3 -m http.server 5500
+
 ## Quick Start (2 minutes)
 
 ### 1. Navigate to Project Directory
