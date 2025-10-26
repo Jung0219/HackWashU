@@ -20,6 +20,17 @@ const hospital2Card = document.getElementById('hospital2Card');
 const savingsSummary = document.getElementById('savingsSummary');
 const savingsText = document.getElementById('savingsText');
 
+// Insurance elements
+const insuranceSection = document.getElementById('insuranceSection');
+const insurancePlan = document.getElementById('insurancePlan');
+const coveragePercentage = document.getElementById('coveragePercentage');
+const coveragePercentageValue = document.getElementById('coveragePercentageValue');
+const deductible = document.getElementById('deductible');
+const copay = document.getElementById('copay');
+const updateInsuranceBtn = document.getElementById('updateInsurance');
+const insuranceNotice = document.getElementById('insuranceNotice');
+const insuranceNoticeText = document.getElementById('insuranceNoticeText');
+
 // Webcam elements
 const webcamModal = document.getElementById('webcamModal');
 const webcamVideo = document.getElementById('webcamVideo');
@@ -35,6 +46,21 @@ let map = null;
 let markers = [];
 let mapInitialized = false;
 let webcamStream = null;
+
+// Insurance data
+let insuranceData = {
+  plan: '',
+  coverage: 90,
+  deductible: 500,
+  copay: 50,
+  hasInsurance: true
+};
+
+// Store hospital pricing data
+let hospitalPricingData = {
+  barnes_jewish: null,
+  lincoln: null
+};
 
 // Hospital data
 const hospitals = [
@@ -56,20 +82,75 @@ const hospitals = [
   }
 ];
 
-// Setup custom marker click handlers (no Google Maps needed)
-function setupMarkerClickHandlers() {
-  const markerElements = document.querySelectorAll('.hospital-marker');
-  markerElements.forEach((marker, index) => {
-    marker.addEventListener('click', () => {
-      const cardId = hospitals[index].cardId;
-      const card = document.getElementById(cardId);
+// Initialize Mapbox
+function initMapbox() {
+  if (mapInitialized) return;
+  
+  // Set your Mapbox access token here - REPLACE WITH YOUR TOKEN
+  mapboxgl.accessToken = 'pk.eyJ1IjoieW91ci1tYXBib3gtdXNlcm5hbWUiLCJhIjoiY201YWIyMzAifQ.pk.eyJ1IjoiZWQwODI3IiwiYSI6ImNtaDc4eGNldjBvczAybXB6ZW5lZ3BzdWEifQ.rRf3regcDzFGfLKgdIxnMQ';
+  
+  // Center between the two hospitals
+  map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: [-90.8, 38.88],
+    zoom: 10
+  });
+
+  // Add hospital markers
+  hospitals.forEach((hospital, index) => {
+    // Create a marker element
+    const el = document.createElement('div');
+    el.className = 'hospital-marker-mapbox';
+    el.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="18" fill="%230ea5e9" stroke="white" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="18" fill="white" font-weight="bold">${index + 1}</text></svg>')`;
+    el.style.backgroundSize = '100%';
+    el.style.width = '40px';
+    el.style.height = '40px';
+    el.style.cursor = 'pointer';
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.transition = 'transform 0.3s ease';
+    
+    // Add hover effect
+    el.addEventListener('mouseenter', () => {
+      el.style.transform = 'scale(1.3)';
+    });
+    el.addEventListener('mouseleave', () => {
+      el.style.transform = 'scale(1)';
+    });
+
+    // Create popup
+    const popupContent = document.createElement('div');
+    popupContent.innerHTML = `
+      <div class="hospital-popup-title">${hospital.name}</div>
+      <div class="hospital-popup-address">${hospital.location}</div>
+    `;
+
+    const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
+
+    // Create marker
+    const marker = new mapboxgl.Marker(el)
+      .setLngLat([hospital.lng, hospital.lat])
+      .setPopup(popup)
+      .addTo(map);
+
+    // Click marker to highlight hospital card
+    el.addEventListener('click', () => {
+      const card = document.getElementById(hospital.cardId);
       card.classList.add('active');
-      
-      // Remove active from the other card
       const otherCard = index === 0 ? hospital2Card : hospital1Card;
       otherCard.classList.remove('active');
     });
+
+    markers.push(marker);
   });
+
+  mapInitialized = true;
+}
+
+// Setup marker click handlers (for non-Mapbox compatibility)
+function setupMarkerClickHandlers() {
+  // Mapbox markers are handled in initMapbox
+  // This function kept for compatibility
 }
 
 // Modal logic for choosing between taking a photo or uploading one
@@ -194,6 +275,7 @@ function handleFile(event) {
   redoBtn.style.display = "none";
   zipSection.style.display = "none";
   injuryInfo.style.display = "none";
+  insuranceSection.style.display = "none";
   mapSection.style.display = "none";
 
   // Prepare file for sending
@@ -225,52 +307,70 @@ function handleFile(event) {
     });
 }
 
-// Search for hospitals
-searchHospitalsBtn.addEventListener('click', () => {
-  const zipCode = zipInput.value.trim();
-  
-  if (zipCode.length !== 5) {
-    alert('Please enter a valid 5-digit ZIP code');
-    return;
-  }
-
-  // Show map section
-  mapSection.style.display = "block";
-  
-  // Setup marker click handlers
-  setTimeout(() => {
-    setupMarkerClickHandlers();
-    mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 100);
-
-  // Reset hospital cards
-  resetHospitalCards();
-  
-  // Load comparison pricing
-  loadComparisonPricing();
+// Coverage percentage slider event
+coveragePercentage.addEventListener('input', (e) => {
+  coveragePercentageValue.textContent = e.target.value + '%';
 });
 
-// Reset hospital cards
-function resetHospitalCards() {
-  [hospital1Card, hospital2Card].forEach(card => {
-    card.classList.remove('active');
-    const body = card.querySelector('.hospital-body');
-    body.innerHTML = '<p class="loading-text">Click hospital card to view pricing details...</p>';
-  });
-  savingsSummary.style.display = 'none';
-}
+// Update insurance button
+updateInsuranceBtn.addEventListener('click', () => {
+  insuranceData.plan = insurancePlan.value;
+  insuranceData.coverage = parseInt(coveragePercentage.value);
+  insuranceData.deductible = parseInt(deductible.value) || 0;
+  insuranceData.copay = parseInt(copay.value) || 0;
+  insuranceData.hasInsurance = insurancePlan.value !== '';
 
-// Load hospital data when card is clicked
-function loadHospitalData(cardId) {
-  const card = document.getElementById(cardId);
-  card.classList.add('active');
+  // Show confirmation
+  if (insuranceData.hasInsurance) {
+    insuranceNoticeText.innerHTML = `
+      ✓ <strong>${insurancePlan.options[insurancePlan.selectedIndex].text}</strong> 
+      (${insuranceData.coverage}% coverage)<br>
+      Deductible: $${insuranceData.deductible} | Co-pay: $${insuranceData.copay}
+    `;
+  } else {
+    insuranceNoticeText.innerHTML = '✓ Self-pay mode - showing full hospital charges';
+  }
+  insuranceNotice.style.display = 'block';
+
+  // Recalculate and update hospital pricing display
+  if (hospitalPricingData.barnes_jewish || hospitalPricingData.lincoln) {
+    updateHospitalCardsWithInsurance();
+  }
+});
+
+// Calculate patient cost based on insurance
+function calculatePatientCost(hospitalCost) {
+  if (!insuranceData.hasInsurance) {
+    return {
+      hospitalCharge: hospitalCost,
+      insurancePays: 0,
+      deductibleApplied: 0,
+      copayApplied: 0,
+      patientOwes: hospitalCost
+    };
+  }
+
+  const insuranceCoverageAmount = hospitalCost * (insuranceData.coverage / 100);
+  const hospitalResponsibility = hospitalCost - insuranceCoverageAmount;
   
-  // Just highlight - data already loaded via loadComparisonPricing
-  // This function is for visual feedback on click
+  // Deductible applies first
+  const deductibleApplied = Math.min(insuranceData.deductible, hospitalResponsibility);
+  const afterDeductible = hospitalResponsibility - deductibleApplied;
+  
+  // Co-pay applies after deductible
+  const copayApplied = insuranceData.copay;
+  
+  return {
+    hospitalCharge: hospitalCost,
+    insurancePays: insuranceCoverageAmount,
+    deductibleApplied: deductibleApplied,
+    copayApplied: copayApplied,
+    patientOwes: afterDeductible + copayApplied
+  };
 }
 
-// Display pricing in hospital card
-function displayHospitalPricing(card, hospitalData) {
+// Display pricing with insurance breakdown
+function displayHospitalPricingWithInsurance(card, hospitalData) {
   const body = card.querySelector('.hospital-body');
   const procedures = hospitalData.procedures || [];
 
@@ -294,42 +394,87 @@ function displayHospitalPricing(card, hospitalData) {
 
   html += '</ul>';
 
-  // Always show total estimate if available
-  const total = hospitalData.total_estimate || 0;
-  if (total > 0) {
-    html += `
-      <div class="total-estimate">
-        <h4>Total Estimated Cost:</h4>
-        <p>$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-      </div>
-    `;
+  // Calculate totals
+  const totalHospitalCharge = hospitalData.total_estimate || 0;
+  
+  if (totalHospitalCharge > 0) {
+    const costs = calculatePatientCost(totalHospitalCharge);
+    
+    html += `<div class="pricing-breakdown">`;
+    html += `<div class="price-row">
+      <span class="price-label">Hospital Charge:</span>
+      <span class="price-value">$${costs.hospitalCharge.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+    </div>`;
+    
+    if (insuranceData.hasInsurance) {
+      html += `<div class="price-row">
+        <span class="price-label">Insurance Covers (${insuranceData.coverage}%):</span>
+        <span class="price-value" style="color: #10b981;">-$${costs.insurancePays.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+      </div>`;
+      
+      if (costs.deductibleApplied > 0) {
+        html += `<div class="price-row">
+          <span class="price-label">Your Deductible:</span>
+          <span class="price-value">$${costs.deductibleApplied.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        </div>`;
+      }
+      
+      if (costs.copayApplied > 0) {
+        html += `<div class="price-row">
+          <span class="price-label">Co-pay:</span>
+          <span class="price-value">$${costs.copayApplied.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        </div>`;
+      }
+    }
+    
+    html += `<div class="price-row">
+      <span class="price-label" style="font-size: 15px;">YOU PAY:</span>
+      <span class="price-value" style="font-size: 18px;">$${costs.patientOwes.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+    </div>`;
+    html += `</div>`;
   }
 
   body.innerHTML = html;
 }
 
-// Load comparison pricing (both hospitals)
-function loadComparisonPricing() {
+// Update hospital cards with insurance calculations
+function updateHospitalCardsWithInsurance() {
+  if (hospitalPricingData.barnes_jewish) {
+    displayHospitalPricingWithInsurance(hospital1Card, hospitalPricingData.barnes_jewish);
+  }
+  if (hospitalPricingData.lincoln) {
+    displayHospitalPricingWithInsurance(hospital2Card, hospitalPricingData.lincoln);
+  }
+}
+
+// Update comparison pricing to include insurance
+function loadComparisonPricingWithInsurance() {
   fetch(`http://localhost:5001/api/pricing/compare?wound_type=${encodeURIComponent(currentWoundType)}`)
     .then(res => res.json())
     .then(data => {
       console.log('Comparison data:', data);
       
-      // Display pricing for each hospital
       if (data.comparison && data.comparison.length >= 2) {
-        // Barnes Jewish (first hospital)
-        displayHospitalPricing(hospital1Card, data.comparison[0]);
+        hospitalPricingData.barnes_jewish = data.comparison[0];
+        hospitalPricingData.lincoln = data.comparison[1];
         
-        // Lincoln (second hospital)
-        displayHospitalPricing(hospital2Card, data.comparison[1]);
+        displayHospitalPricingWithInsurance(hospital1Card, data.comparison[0]);
+        displayHospitalPricingWithInsurance(hospital2Card, data.comparison[1]);
 
         // Show savings if available
         if (data.savings) {
           const savings = data.savings;
+          const barnes1Cost = calculatePatientCost(data.comparison[0].total_estimate || 0);
+          const lincolnCost = calculatePatientCost(data.comparison[1].total_estimate || 0);
+          const patientSavings = barnes1Cost.patientOwes - lincolnCost.patientOwes;
+          const percentSaved = barnes1Cost.patientOwes > 0 
+            ? ((patientSavings / barnes1Cost.patientOwes) * 100).toFixed(1)
+            : 0;
+
           savingsText.innerHTML = `
-            <strong>Save $${savings.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} 
-            (${savings.percentage.toFixed(1)}%)</strong><br>
-            by choosing ${savings.cheaper_hospital === 'Lincoln' ? 'Mercy Hospital Lincoln' : 'Barnes Jewish St. Peters'}!
+            <strong>Save $${Math.abs(patientSavings).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} 
+            (${percentSaved}%)</strong><br>
+            on your out-of-pocket costs by choosing ${savings.cheaper_hospital === 'Lincoln' ? 'Mercy Hospital Lincoln' : 'Barnes Jewish St. Peters'}!
           `;
           savingsSummary.style.display = 'block';
         }
@@ -341,17 +486,53 @@ function loadComparisonPricing() {
     });
 }
 
+// Search for hospitals
+searchHospitalsBtn.addEventListener('click', () => {
+  const zipCode = zipInput.value.trim();
+  
+  if (zipCode.length !== 5) {
+    alert('Please enter a valid 5-digit ZIP code');
+    return;
+  }
+
+  // Show insurance section
+  insuranceSection.style.display = "block";
+
+  // Show map section
+  mapSection.style.display = "block";
+  
+  // Initialize Mapbox after display
+  setTimeout(() => {
+    initMapbox();
+    insuranceSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+
+  // Reset hospital cards
+  resetHospitalCards();
+  
+  // Load comparison pricing
+  loadComparisonPricingWithInsurance();
+});
+
+// Reset hospital cards
+function resetHospitalCards() {
+  [hospital1Card, hospital2Card].forEach(card => {
+    card.classList.remove('active');
+    const body = card.querySelector('.hospital-body');
+    body.innerHTML = '<p class="loading-text">Click hospital card to view pricing details...</p>';
+  });
+  savingsSummary.style.display = 'none';
+}
+
 // Hospital card click handlers
 hospital1Card.addEventListener('click', () => {
   hospital1Card.classList.add('active');
   hospital2Card.classList.remove('active');
-  loadHospitalData('hospital1Card');
 });
 
 hospital2Card.addEventListener('click', () => {
   hospital2Card.classList.add('active');
   hospital1Card.classList.remove('active');
-  loadHospitalData('hospital2Card');
 });
 
 // Redo button resets the UI
@@ -362,12 +543,33 @@ redoBtn.addEventListener('click', () => {
   redoBtn.style.display = "none";
   zipSection.style.display = "none";
   injuryInfo.style.display = "none";
+  insuranceSection.style.display = "none";
   mapSection.style.display = "none";
+  insuranceNotice.style.display = "none";
   currentWoundType = '';
   detectedInjury.textContent = "-";
   zipInput.value = "";
   mapInitialized = false;
+  
+  // Remove Mapbox markers
+  markers.forEach(marker => marker.remove());
   markers = [];
+  
+  insuranceData = {
+    plan: '',
+    coverage: 90,
+    deductible: 500,
+    copay: 50,
+    hasInsurance: true
+  };
+  hospitalPricingData = {
+    barnes_jewish: null,
+    lincoln: null
+  };
+  insurancePlan.value = '';
+  coveragePercentage.value = 90;
+  deductible.value = 500;
+  copay.value = 50;
 });
 
 // Event listeners for upload/camera

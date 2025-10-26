@@ -660,3 +660,219 @@ button:hover {
 #retakePhotoBtn:hover {
   background-color: #d97706;
 }
+
+/* Insurance Section Styling */
+.insurance-section {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  border-left: 4px solid #3b82f6;
+}
+
+.insurance-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+.form-group select,
+.form-group input[type="number"] {
+  padding: 10px;
+  border: 2px solid #60a5fa;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: white;
+  color: #1e293b;
+}
+
+.form-group select:focus,
+.form-group input[type="number"]:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-container input[type="range"] {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #ef4444 0%, #f59e0b 50%, #10b981 100%);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+.slider-container input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  border: none;
+}
+
+#coveragePercentageValue {
+  font-weight: 600;
+  color: #3b82f6;
+  min-width: 45px;
+  text-align: right;
+  font-size: 14px;
+}
+
+.insurance-btn {
+  grid-column: 1 / -1;
+  padding: 12px 24px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.insurance-btn:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.insurance-notice {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+  padding: 12px;
+  background-color: #dbeafe;
+  border-left: 4px solid #3b82f6;
+  border-radius: 6px;
+}
+
+.insurance-notice p {
+  margin: 0;
+  color: #1e40af;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Insurance pricing display in hospital cards */
+.pricing-breakdown {
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding: 4px 0;
+}
+
+.price-row:last-child {
+  margin-bottom: 0;
+  border-top: 2px solid #e5e7eb;
+  padding-top: 8px;
+  margin-top: 8px;
+  font-weight: 600;
+  color: #047857;
+}
+
+.price-label {
+  color: #475569;
+}
+
+.price-value {
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.price-row:last-child .price-value {
+  color: #047857;
+  font-size: 15px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .insurance-form {
+    grid-template-columns: 1fr;
+  }
+
+  .insurance-btn,
+  .insurance-notice {
+    grid-column: 1;
+  }
+}
+
+/* Mapbox Container */
+.mapbox-container {
+  width: 100%;
+  height: 400px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border: 2px solid #7dd3fc;
+}
+
+#map {
+  border: none;
+  box-shadow: none;
+}
+
+/* Mapbox popup styling */
+.mapboxgl-popup-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: white;
+}
+
+.hospital-popup-title {
+  font-weight: 600;
+  color: #1e3a8a;
+  margin-bottom: 4px;
+}
+
+.hospital-popup-address {
+  color: #475569;
+  font-size: 12px;
+}
