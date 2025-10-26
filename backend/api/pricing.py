@@ -78,7 +78,7 @@ WOUND_PROCEDURE_MAPPING = {
         {"code": "70450", "name": "CT imaging for assessment"},
     ],
     "Bruise": [
-        {"code": "70450", "name": "CT head/brain imaging"},
+        {"code": "70450", "name": "CT imaging"},
         {"code": "73000", "name": "X-Ray - Clavicle/shoulder"},
     ],
     "Burn": [

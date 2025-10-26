@@ -22,7 +22,7 @@ def add_cors_headers(response):
 # ------------------------------
 # 2. Load YOLO model
 # ------------------------------
-MODEL_PATH = "/mnt/c/Users/Finn/Downloads/Personal/python/hackathon/output/train/weights/best.pt"
+MODEL_PATH = "/mnt/c/Users/Finn/Downloads/Personal/python/hackathon/output/YOLO/train/weights/best.pt"
 model = YOLO(MODEL_PATH)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
