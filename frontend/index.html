@@ -3,65 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Hackathon Project</title>
+  <title>AI Wound Care Price Navigator</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="home-page">
-  <div class = "box-1">
+  <div class="container">
+    <div class="box-1">
+      <!-- initial title and button to upload photo -->
+      <h1 style="color: #8B8D8B">Injury Detection</h1>
+      <button id="submitInjury">Upload Photo</button>
 
-    <!-- initial title and button to upload photo -->
-    <h1 style="color: #8B8D8B">Injury Detection</h1>
-    <button id="submitInjury">Upload Photo</button>
+      <!-- hidden file inputs -->
+      <input type="file" id="uploadInput" accept="image/*" style="display:none" />
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" />
 
-    <!-- hidden file inputs -->
-    <input type="file" id="uploadInput" accept="image/*" style="display:none" />
-    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" />
-
-    <!-- choose between taking and uploading a photo to be analyzed -->
-    <div id="photoModal" class="modal">
-      <div class="modal-content">
-        <h3 style="color: #8B8D8B">Choose an option</h3>
-        <div class="modal-buttons">
-          <button id="takePhotoBtn">
-            <img src="cam.png" alt="Camera Icon" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;" />
-            Take Photo
-          </button>
-          <button id="uploadPhotoBtn">
-            <img src="photo.png" alt="Upload Icon" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;" />
-            Upload Image
-          </button>
+      <!-- choose between taking and uploading a photo to be analyzed -->
+      <div id="photoModal" class="modal">
+        <div class="modal-content">
+          <h3 style="color: #8B8D8B">Choose an option</h3>
+          <div class="modal-buttons">
+            <button id="takePhotoBtn">
+              <img src="cam.png" alt="Camera Icon" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;" />
+              Take Photo
+            </button>
+            <button id="uploadPhotoBtn">
+              <img src="photo.png" alt="Upload Icon" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;" />
+              Upload Image
+            </button>
+          </div>
+          <button id="closeModal" class="close">Cancel</button>
         </div>
-        <button id="closeModal" class="close">Cancel</button>
       </div>
+
+      <!-- image preview -->
+      <img id="preview" class="camera" alt="Preview" />
+
+      <!-- loading text -->
+      <p id="loading" style="display:none; color: #8B8D8B;">Analyzing...</p>
+
+      <!-- ZIP code input section -->
+      <div id="zipSection" class="zip-section" style="display:none;">
+        <h3 style="color: #8B8D8B; margin-top: 20px;">Find Nearby Hospitals</h3>
+        <div class="zip-input-container">
+          <input type="text" id="zipInput" placeholder="Enter ZIP Code" value="63377" maxlength="5" />
+          <button id="searchHospitals">Search Hospitals</button>
+        </div>
+      </div>
+
+      <!-- Initial treatment info -->
+      <div id="injuryInfo" class="injury-info" style="display:none;">
+        <h3 style="color: #8B8D8B;">Detected Injury</h3>
+        <p id="detectedInjury" style="color: #2c5f7c; font-size: 20px; font-weight: bold;">-</p>
+      </div>
+
+      <button id="redoBtn" style="display:none; margin-top:15px;">Try Another Image</button>
     </div>
 
-    <!-- image preview -->
-    <img id="preview" class="camera" alt="Preview" />
+    <!-- Map and Hospital Comparison Section -->
+    <div id="mapSection" class="map-section" style="display:none;">
+      <h2 style="color: #8B8D8B; text-align: center;">Hospitals Near You</h2>
+      
+      <!-- Google Map -->
+      <div id="map" style="width: 100%; height: 400px; border-radius: 10px; margin-bottom: 20px;"></div>
 
-    <!-- loading text -->
-    <p id="loading" style="display:none; color: #8B8D8B;">Analyzing...</p>
+      <!-- Hospital Comparison Cards -->
+      <div id="hospitalComparison" class="hospital-comparison">
+        <div id="hospital1Card" class="hospital-card" data-hospital="barnes_jewish">
+          <div class="hospital-header">
+            <h3>Barnes Jewish St. Peters Hospital</h3>
+            <p class="hospital-location">📍 St. Peters, MO 63376</p>
+          </div>
+          <div class="hospital-body">
+            <p class="loading-text">Click to view pricing details...</p>
+          </div>
+        </div>
 
-    <!-- treatment plan with info about the injury, recommended procedures, and pricing -->
-    <div id="treatmentPlan" class="treatment-plan">
-      <h3 style="color: #8B8D8B; margin-top: 0%;">Treatment Plan</h3>
-      <div class="result-item">
-        <h4>Injury</h4>
-        <p id="injury">-</p>
+        <div id="hospital2Card" class="hospital-card" data-hospital="lincoln">
+          <div class="hospital-header">
+            <h3>Mercy Hospital Lincoln</h3>
+            <p class="hospital-location">📍 Troy, MO 63379</p>
+          </div>
+          <div class="hospital-body">
+            <p class="loading-text">Click to view pricing details...</p>
+          </div>
+        </div>
       </div>
-      <div class="result-item">
-        <h4>Procedures</h4>
-        <div id="procedures" style="color: #8B8D8B">-</div>
-      </div>
-      <div class="result-item">
-        <h4>Pricing</h4>
-        <div id="pricing" style="color: #8B8D8B">-</div>
+
+      <!-- Savings Summary -->
+      <div id="savingsSummary" class="savings-summary" style="display:none;">
+        <h3>💰 Potential Savings</h3>
+        <p id="savingsText"></p>
       </div>
     </div>
-
-    <button id="redoBtn" style="display:none; margin-top:15px;">Try Another Image</button>
-
   </div>
 
   <script src="script.js"></script>
+  <!-- Google Maps API - Replace YOUR_API_KEY with actual key -->
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
+  </script>
 </body>
 </html>

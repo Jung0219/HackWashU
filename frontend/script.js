@@ -8,11 +8,88 @@ const modal = document.getElementById('photoModal');
 const takePhotoBtn = document.getElementById('takePhotoBtn');
 const uploadPhotoBtn = document.getElementById('uploadPhotoBtn');
 const closeModal = document.getElementById('closeModal');
-const treatmentPlan = document.getElementById('treatmentPlan');
-const injuryEl = document.getElementById('injury');
-const proceduresEl = document.getElementById('procedures');
-const pricingEl = document.getElementById('pricing');
 const redoBtn = document.getElementById('redoBtn');
+const zipSection = document.getElementById('zipSection');
+const zipInput = document.getElementById('zipInput');
+const searchHospitalsBtn = document.getElementById('searchHospitals');
+const injuryInfo = document.getElementById('injuryInfo');
+const detectedInjury = document.getElementById('detectedInjury');
+const mapSection = document.getElementById('mapSection');
+const hospital1Card = document.getElementById('hospital1Card');
+const hospital2Card = document.getElementById('hospital2Card');
+const savingsSummary = document.getElementById('savingsSummary');
+const savingsText = document.getElementById('savingsText');
+
+// Store wound type globally
+let currentWoundType = '';
+let map = null;
+let markers = [];
+
+// Hospital data
+const hospitals = [
+  {
+    name: "Barnes Jewish St. Peters Hospital",
+    location: "St. Peters, MO 63376",
+    lat: 38.7881,
+    lng: -90.6298,
+    api_id: "barnes_jewish",
+    cardId: "hospital1Card"
+  },
+  {
+    name: "Mercy Hospital Lincoln",
+    location: "Troy, MO 63379",
+    lat: 38.9728,
+    lng: -90.9768,
+    api_id: "lincoln",
+    cardId: "hospital2Card"
+  }
+];
+
+// Initialize Google Map
+function initMap() {
+  // Center on ZIP 63377 area (between the two hospitals)
+  const center = { lat: 38.88, lng: -90.8 };
+  
+  map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 10,
+    center: center,
+    styles: [
+      {
+        featureType: "poi.medical",
+        elementType: "geometry",
+        stylers: [{ color: "#ffdde0" }]
+      }
+    ]
+  });
+
+  // Add markers for hospitals
+  hospitals.forEach((hospital, index) => {
+    const marker = new google.maps.Marker({
+      position: { lat: hospital.lat, lng: hospital.lng },
+      map: map,
+      title: hospital.name,
+      label: {
+        text: (index + 1).toString(),
+        color: 'white',
+        fontWeight: 'bold'
+      },
+      animation: google.maps.Animation.DROP
+    });
+
+    // Click marker to show hospital details
+    marker.addListener('click', () => {
+      loadHospitalPricing(hospital.api_id, hospital.cardId);
+      map.panTo(marker.getPosition());
+      marker.setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(() => marker.setAnimation(null), 2000);
+    });
+
+    markers.push(marker);
+  });
+}
+
+// Make initMap globally accessible
+window.initMap = initMap;
 
 // Modal logic for choosing between taking a photo or uploading one
 submitBtn.addEventListener('click', () => modal.style.display = 'flex');
@@ -32,7 +109,9 @@ function handleFile(event) {
   loading.style.display = "block";
   submitBtn.style.display = "none";
   redoBtn.style.display = "none";
-  treatmentPlan.classList.remove("show");
+  zipSection.style.display = "none";
+  injuryInfo.style.display = "none";
+  mapSection.style.display = "none";
 
   // Prepare file for sending
   const formData = new FormData();
@@ -46,66 +125,192 @@ function handleFile(event) {
     .then(res => res.json())
     .then(data => {
       loading.style.display = "none";
-      const lastPrediction = data.predicted_class || "Unknown injury";
+      currentWoundType = data.predicted_class || "Unknown injury";
 
-      // Show preliminary result
-      injuryEl.textContent = lastPrediction;
-      proceduresEl.textContent = "Fetching hospital pricing...";
-      pricingEl.textContent = "...";
-
-      // Fetch hospital pricing
-      fetch(`http://localhost:5001/api/pricing?wound_type=${encodeURIComponent(lastPrediction)}`)
-        .then(res => res.json())
-        .then(priceData => {
-          console.log("Full pricing API response:", priceData);
-
-          const hospitalName = priceData.hospital || "Unknown Hospital";
-          const procedures = priceData.procedures || [];
-
-          if (procedures.length > 0) {
-            // Build a simple list: Procedure — Estimated Price
-            const procedureListHTML = procedures
-              .map(p => `<li>${p.name} — $${p.pricing.estimate.toFixed(2)}</li>`)
-              .join("");
-
-            proceduresEl.innerHTML = `<ul>${procedureListHTML}</ul>`;
-
-            // Show average estimated cost
-            const validPrices = procedures
-              .map(p => p.pricing?.estimate)
-              .filter(price => typeof price === "number" && !isNaN(price));
-
-            if (validPrices.length > 0) {
-              const avgEstimate = validPrices.reduce((sum, p) => sum + p, 0) / validPrices.length;
-              pricingEl.innerHTML = `$${avgEstimate.toFixed(2)}`;
-            } else {
-              pricingEl.innerHTML = "N/A";
-            }
-
-            treatmentPlan.classList.add("show");
-            redoBtn.style.display = "inline-block";
-          } else {
-            proceduresEl.innerHTML = "<p>No procedure data available.</p>";
-            pricingEl.innerHTML = "N/A";
-          }
-        })
-        .catch(err => {
-          console.error("Pricing API error:", err);
-          proceduresEl.innerHTML = "<p>Failed to fetch pricing data.</p>";
-          pricingEl.innerHTML = "<p>N/A</p>";
-          treatmentPlan.classList.add("show");
-        });
+      // Show wound type and ZIP section
+      detectedInjury.textContent = currentWoundType;
+      injuryInfo.style.display = "block";
+      zipSection.style.display = "block";
+      redoBtn.style.display = "inline-block";
     })
     .catch(err => {
       console.error("Classification API error:", err);
       loading.style.display = "none";
-      treatmentPlan.classList.add("show");
-      injuryEl.textContent = "Error analyzing image";
-      proceduresEl.textContent = "Please try again";
-      pricingEl.textContent = "-";
+      detectedInjury.textContent = "Error analyzing image";
+      injuryInfo.style.display = "block";
       redoBtn.style.display = "inline-block";
     });
 }
+
+// Search for hospitals
+searchHospitalsBtn.addEventListener('click', () => {
+  const zipCode = zipInput.value.trim();
+  
+  if (zipCode.length !== 5) {
+    alert('Please enter a valid 5-digit ZIP code');
+    return;
+  }
+
+  // Show map section
+  mapSection.style.display = "block";
+  
+  // Scroll to map
+  setTimeout(() => {
+    mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+
+  // Reset hospital cards
+  resetHospitalCards();
+  
+  // Load comparison pricing
+  loadComparisonPricing();
+});
+
+// Reset hospital cards
+function resetHospitalCards() {
+  [hospital1Card, hospital2Card].forEach(card => {
+    card.classList.remove('active');
+    const body = card.querySelector('.hospital-body');
+    body.innerHTML = '<p class="loading-text">Click to view pricing details...</p>';
+  });
+  savingsSummary.style.display = 'none';
+}
+
+// Load pricing for a specific hospital when clicked
+function loadHospitalPricing(hospitalId, cardId) {
+  const card = document.getElementById(cardId);
+  card.classList.add('active');
+  
+  const body = card.querySelector('.hospital-body');
+  body.innerHTML = '<p class="loading-text">Loading pricing data...</p>';
+
+  fetch(`http://localhost:5001/api/pricing?wound_type=${encodeURIComponent(currentWoundType)}`)
+    .then(res => res.json())
+    .then(data => {
+      console.log(`Pricing for ${hospitalId}:`, data);
+      displayHospitalPricing(card, data);
+    })
+    .catch(err => {
+      console.error(`Error loading ${hospitalId} pricing:`, err);
+      body.innerHTML = '<p style="color: #ef4444;">Failed to load pricing data</p>';
+    });
+}
+
+// Display pricing in hospital card
+function displayHospitalPricing(card, data) {
+  const body = card.querySelector('.hospital-body');
+  const procedures = data.procedures || [];
+
+  if (procedures.length === 0) {
+    body.innerHTML = '<p>No procedures found for this injury type.</p>';
+    return;
+  }
+
+  let html = '<h4 style="margin: 0 0 10px 0; color: #1e3a8a;">Available Procedures:</h4>';
+  html += '<ul class="procedures-list">';
+
+  procedures.forEach(proc => {
+    const estimate = proc.pricing?.estimate || 0;
+    html += `
+      <li>
+        <span class="procedure-name">${proc.name}</span>
+        <span class="procedure-price">$${estimate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+      </li>
+    `;
+  });
+
+  html += '</ul>';
+
+  // Calculate total
+  const total = data.total_estimate || 0;
+  html += `
+    <div class="total-estimate">
+      <h4>Total Estimated Cost:</h4>
+      <p>$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+    </div>
+  `;
+
+  body.innerHTML = html;
+}
+
+// Load comparison pricing (both hospitals)
+function loadComparisonPricing() {
+  fetch(`http://localhost:5001/api/pricing/compare?wound_type=${encodeURIComponent(currentWoundType)}`)
+    .then(res => res.json())
+    .then(data => {
+      console.log('Comparison data:', data);
+      
+      // Display pricing for each hospital
+      if (data.comparison && data.comparison.length >= 2) {
+        // Barnes Jewish (first hospital)
+        displayComparisonInCard(hospital1Card, data.comparison[0]);
+        
+        // Lincoln (second hospital)
+        displayComparisonInCard(hospital2Card, data.comparison[1]);
+
+        // Show savings if available
+        if (data.savings) {
+          const savings = data.savings;
+          savingsText.innerHTML = `
+            <strong>Save $${savings.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} 
+            (${savings.percentage.toFixed(1)}%)</strong><br>
+            by choosing ${savings.cheaper_hospital === 'Lincoln' ? 'Mercy Hospital Lincoln' : 'Barnes Jewish St. Peters'}!
+          `;
+          savingsSummary.style.display = 'block';
+        }
+      }
+    })
+    .catch(err => {
+      console.error('Error loading comparison:', err);
+    });
+}
+
+// Display comparison data in a card
+function displayComparisonInCard(card, hospitalData) {
+  const body = card.querySelector('.hospital-body');
+  const procedures = hospitalData.procedures || [];
+
+  if (procedures.length === 0) {
+    body.innerHTML = '<p>No procedures available for this injury.</p>';
+    return;
+  }
+
+  let html = '<h4 style="margin: 0 0 10px 0; color: #1e3a8a;">Available Procedures:</h4>';
+  html += '<ul class="procedures-list">';
+
+  procedures.forEach(proc => {
+    const estimate = proc.pricing?.estimate || 0;
+    html += `
+      <li>
+        <span class="procedure-name">${proc.name}</span>
+        <span class="procedure-price">$${estimate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+      </li>
+    `;
+  });
+
+  html += '</ul>';
+
+  const total = hospitalData.total_estimate || 0;
+  html += `
+    <div class="total-estimate">
+      <h4>Total Estimated Cost:</h4>
+      <p>$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+    </div>
+  `;
+
+  body.innerHTML = html;
+}
+
+// Hospital card click handlers
+hospital1Card.addEventListener('click', () => {
+  hospital1Card.classList.add('active');
+  hospital2Card.classList.remove('active');
+});
+
+hospital2Card.addEventListener('click', () => {
+  hospital2Card.classList.add('active');
+  hospital1Card.classList.remove('active');
+});
 
 // Redo button resets the UI
 redoBtn.addEventListener('click', () => {
@@ -113,10 +318,12 @@ redoBtn.addEventListener('click', () => {
   preview.src = "";
   submitBtn.style.display = "inline-block";
   redoBtn.style.display = "none";
-  treatmentPlan.classList.remove("show");
-  injuryEl.textContent = "-";
-  proceduresEl.textContent = "-";
-  pricingEl.textContent = "-";
+  zipSection.style.display = "none";
+  injuryInfo.style.display = "none";
+  mapSection.style.display = "none";
+  currentWoundType = '';
+  detectedInjury.textContent = "-";
+  zipInput.value = "63377";
 });
 
 // Event listeners for upload/camera

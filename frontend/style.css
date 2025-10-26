@@ -8,18 +8,28 @@ body {
 .home-page {
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  display: flex;
+  gap: 30px;
+  width: 100%;
+  max-width: 1400px;
+  flex-wrap: wrap;
 }
 
 .box-1 {
   background-color: #bae6fd;
   border-radius: 12px;
   padding: 20px;
-  width: 80%;
+  width: 100%;
   max-width: 400px;
   text-align: center;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  flex-shrink: 0;
 }
 
 .camera {
@@ -43,6 +53,7 @@ button {
   background-color: #60a5fa;
   color: white;
   cursor: pointer;
+  font-size: 14px;
 }
 
 button:hover {
@@ -149,4 +160,199 @@ button:hover {
   margin: 0;
   font-size: 16px;
   color: #8B8D8B
+}
+
+/* ZIP Code Section */
+.zip-section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.zip-input-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+
+#zipInput {
+  padding: 10px;
+  border: 2px solid #60a5fa;
+  border-radius: 6px;
+  width: 120px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.injury-info {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+}
+
+/* Map Section */
+.map-section {
+  flex: 1;
+  min-width: 700px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#map {
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Hospital Comparison Cards */
+.hospital-comparison {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.hospital-card {
+  flex: 1;
+  min-width: 300px;
+  background: linear-gradient(135deg, #bae6fd 0%, #a0cde6 100%);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 3px solid transparent;
+}
+
+.hospital-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+.hospital-card.active {
+  border: 3px solid #2563eb;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+}
+
+.hospital-header h3 {
+  margin: 0 0 10px 0;
+  color: #1e3a8a;
+  font-size: 20px;
+}
+
+.hospital-location {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+}
+
+.hospital-body {
+  margin-top: 15px;
+  color: #334155;
+}
+
+.loading-text {
+  color: #64748b;
+  font-style: italic;
+}
+
+.procedures-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+  text-align: left;
+}
+
+.procedures-list li {
+  background-color: rgba(255, 255, 255, 0.6);
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.procedure-name {
+  flex: 1;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.procedure-price {
+  color: #0f766e;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.total-estimate {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  border-left: 4px solid #10b981;
+}
+
+.total-estimate h4 {
+  margin: 0 0 5px 0;
+  color: #065f46;
+  font-size: 14px;
+}
+
+.total-estimate p {
+  margin: 0;
+  color: #047857;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Savings Summary */
+.savings-summary {
+  margin-top: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 12px;
+  text-align: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.savings-summary h3 {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+}
+
+.savings-summary p {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .map-section {
+    min-width: 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .hospital-comparison {
+    flex-direction: column;
+  }
+  
+  .hospital-card {
+    min-width: 100%;
+  }
 }
