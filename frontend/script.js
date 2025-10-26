@@ -58,16 +58,13 @@ function handleFile(event) {
         .then(res => res.json())
         .then(priceData => {
           console.log("Full pricing API response:", priceData);
-
-          // Format full JSON for debugging (visible in UI)
           const fullResponseText = JSON.stringify(priceData, null, 2);
 
-          // Display raw response temporarily for debugging
           proceduresEl.textContent = fullResponseText;
           pricingEl.textContent = "See console for full details";
 
-          // Animate treatment plan in
           treatmentPlan.classList.add("show");
+          redoBtn.style.display = "inline-block"; // <-- add this line
         })
         .catch(err => {
           console.error("Pricing API error:", err);

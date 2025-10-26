@@ -1,46 +1,76 @@
-# app.py
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import JSONResponse
+from flask import Flask, request, jsonify
 from ultralytics import YOLO
 from PIL import Image
 import io
-from fastapi.middleware.cors import CORSMiddleware
+import torch
 
-# 1. Initialize FastAPI app
-app = FastAPI(title="Local YOLO Classification API")
+app = Flask(__name__)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# ------------------------------
+# 1. Allow CORS for frontend access
+# ------------------------------
 
 
-# 2. Load YOLO classification model (trained weights)
-# your YOLOv8n-cls or custom model
-model = YOLO(
-    "/mnt/c/Users/Finn/Downloads/Personal/python/hackathon/output/train/weights/best.pt")
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
 
-# 3. Define endpoint for prediction
+
+# ------------------------------
+# 2. Load YOLO model
+# ------------------------------
+MODEL_PATH = "/mnt/c/Users/Finn/Downloads/Personal/python/hackathon/output/train/weights/best.pt"
+model = YOLO(MODEL_PATH)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model.to(device)
+print(f"✅ Model loaded on {device.upper()}")
+
+# ------------------------------
+# 3. Define /predict endpoint
+# ------------------------------
 
 
-@app.post("/predict")
-async def predict(file: UploadFile = File(...)):
-    # Read image bytes and open as PIL Image
-    image_bytes = await file.read()
-    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+@app.route("/predict", methods=["POST"])
+def predict():
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
 
-    # 4. Run YOLO classification inference
+    file = request.files["file"]
+    image = Image.open(io.BytesIO(file.read())).convert("RGB")
+
+    # Run YOLO classification inference
     results = model.predict(image)
 
-    # 5. Extract top prediction
+    # Extract top prediction
     top_pred = results[0].probs.top1
     confidence = float(results[0].probs.top1conf)
     class_name = model.names[top_pred]
 
-    return JSONResponse({
+    return jsonify({
         "predicted_class": class_name,
         "confidence": round(confidence, 3)
     })
+
+# ------------------------------
+# 4. Health check route
+# ------------------------------
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({
+        "status": "healthy",
+        "model_path": MODEL_PATH,
+        "device": device
+    })
+
+
+# ------------------------------
+# 5. Run the app
+# ------------------------------
+if __name__ == "__main__":
+    print("🚀 Starting Flask YOLO Classification API on http://127.0.0.1:5005")
+    app.run(host="0.0.0.0", port=5005, debug=False)
