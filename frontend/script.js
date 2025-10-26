@@ -58,20 +58,49 @@ function handleFile(event) {
         .then(res => res.json())
         .then(priceData => {
           console.log("Full pricing API response:", priceData);
-          const fullResponseText = JSON.stringify(priceData, null, 2);
 
-          proceduresEl.textContent = fullResponseText;
-          pricingEl.textContent = "See console for full details";
+          const hospitalName = priceData.hospital || "Unknown Hospital";
+          const procedures = priceData.procedures || [];
+
+          if (procedures.length > 0) {
+            // Build HTML for procedures list
+            const procedureListHTML = procedures
+              .map(
+                p => `
+                  <li>
+                    <strong>${p.name}</strong><br>
+                    <span class="code">Code: ${p.code}</span><br>
+                    <span class="price">Estimated: $${p.pricing.estimate.toFixed(2)} (${p.pricing.setting})</span>
+                  </li>
+                `
+              )
+              .join("");
+
+            proceduresEl.innerHTML = `
+              <p><strong>Hospital:</strong> ${hospitalName}</p>
+              <ul>${procedureListHTML}</ul>
+            `;
+
+            const totalEstimate = procedures.reduce((sum, p) => sum + (p.pricing?.estimate || 0), 0);
+
+            pricingEl.innerHTML = `
+              <p><strong>Total Estimated Cost:</strong> ~$${totalEstimate.toFixed(2)}</p>
+            `;
+          } else {
+            proceduresEl.innerHTML = "<p>No procedure data available.</p>";
+            pricingEl.innerHTML = "<p>N/A</p>";
+          }
 
           treatmentPlan.classList.add("show");
-          redoBtn.style.display = "inline-block"; // <-- add this line
+          redoBtn.style.display = "inline-block";
         })
         .catch(err => {
           console.error("Pricing API error:", err);
-          proceduresEl.textContent = "Failed to fetch pricing data.";
-          pricingEl.textContent = "N/A";
+          proceduresEl.innerHTML = "<p>Failed to fetch pricing data.</p>";
+          pricingEl.innerHTML = "<p>N/A</p>";
           treatmentPlan.classList.add("show");
         });
+
     })
     .catch(err => {
       console.error("Classification API error:", err);
