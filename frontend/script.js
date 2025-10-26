@@ -63,33 +63,21 @@ function handleFile(event) {
           const procedures = priceData.procedures || [];
 
           if (procedures.length > 0) {
-            // Build HTML for procedures list
+            // Build a simple list: Procedure — Estimated Price
             const procedureListHTML = procedures
-              .map(
-                p => `
-                  <li>
-                    <strong>${p.name}</strong><br>
-                    <span class="code">Code: ${p.code}</span><br>
-                    <span class="price">Estimated: $${p.pricing.estimate.toFixed(2)} (${p.pricing.setting})</span>
-                  </li>
-                `
-              )
+              .map(p => `<li>${p.name} — $${p.pricing.estimate.toFixed(2)}</li>`)
               .join("");
 
-            proceduresEl.innerHTML = `
-              <p><strong>Hospital:</strong> ${hospitalName}</p>
-              <ul>${procedureListHTML}</ul>
-            `;
+            proceduresEl.innerHTML = `<ul>${procedureListHTML}</ul>`;
 
+            // Optional: show total estimated cost
             const totalEstimate = procedures.reduce((sum, p) => sum + (p.pricing?.estimate || 0), 0);
-
-            pricingEl.innerHTML = `
-              <p><strong>Total Estimated Cost:</strong> ~$${totalEstimate.toFixed(2)}</p>
-            `;
+            pricingEl.innerHTML = `$${totalEstimate.toFixed(2)}`;
           } else {
             proceduresEl.innerHTML = "<p>No procedure data available.</p>";
-            pricingEl.innerHTML = "<p>N/A</p>";
+            pricingEl.innerHTML = "N/A";
           }
+
 
           treatmentPlan.classList.add("show");
           redoBtn.style.display = "inline-block";
