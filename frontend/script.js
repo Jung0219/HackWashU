@@ -12,6 +12,7 @@ const treatmentPlan = document.getElementById('treatmentPlan');
 const injuryEl = document.getElementById('injury');
 const proceduresEl = document.getElementById('procedures');
 const pricingEl = document.getElementById('pricing');
+const redoBtn = document.getElementById('redoBtn');
 
 // modal logic for choosing between taking a photo or uploading one
 submitBtn.addEventListener('click', () => modal.style.display = 'flex');
@@ -30,6 +31,7 @@ function handleFile(event) {
   preview.style.display = "block";
   loading.style.display = "block";
   submitBtn.style.display = "none";
+  redoBtn.style.display = "none";
 
   // hide treatment plan first
   treatmentPlan.classList.remove("show");
@@ -62,8 +64,20 @@ function handleFile(event) {
       injuryEl.textContent = "Error analyzing image";
       proceduresEl.textContent = "Please try again";
       pricingEl.textContent = "-";
+      redoBtn.style.display = "inline-block";
     });
 }
+
+redoBtn.addEventListener('click', () => {
+  preview.style.display = "none";
+  preview.src = "";
+  submitBtn.style.display = "inline-block";
+  redoBtn.style.display = "none";
+  treatmentPlan.classList.remove("show");
+  injuryEl.textContent = "-";
+  proceduresEl.textContent = "-";
+  pricingEl.textContent = "-";
+});
 
 // event listeners for file uploads
 uploadInput.addEventListener('change', handleFile);
